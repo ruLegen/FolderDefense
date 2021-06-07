@@ -44,5 +44,14 @@ public:
 	void GenerateRoom();
 
 	UFUNCTION(BlueprintCallable)
-	void Setup(int _WallCount);
+	void Setup(int _WallCount,int _RoomHeight);
+
+	UFUNCTION(BlueprintCallable)
+	bool GetExtendedBox(FVector& Output);
+
+	UFUNCTION(BlueprintCallable)
+	void GetCenter(FVector& Output);
+
+	UFUNCTION(BlueprintCallable)
+	FVector GetRandomPointInside();
 };

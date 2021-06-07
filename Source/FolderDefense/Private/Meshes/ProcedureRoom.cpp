@@ -3,7 +3,6 @@
 
 #include "Meshes/ProcedureRoom.h"
 
-#include <string>
 
 // Sets default values
 AProcedureRoom::AProcedureRoom()
@@ -41,11 +40,11 @@ void AProcedureRoom::GenerateRoom()
 	int  RotationDeg = 0;
 	FVector LastLocation;
 	WallInstanceHolder->ClearInstances();
-	for (int h = 0; h < WallHeight; h++)
+	for (int h = 1; h <= WallHeight; h++)	/// Generates Height Walls
 	{
-		for (int i = 0; i <= 3; i++)
+		for (int i = 0; i <= 3; i++)		// Rotate Wall Generator
 		{
-			for (int j = 0; j < WallCount; j++)
+			for (int j = 0; j < WallCount; j++)	// Walls
 			{
 				float YOffset = WallSize.Y *2 * j;
 				auto DirectionVector = FVector(0,YOffset,0).RotateAngleAxis(RotationDeg,FVector::ZAxisVector);
@@ -87,9 +86,37 @@ void AProcedureRoom::GenerateRoom()
 	
 }
 
-void AProcedureRoom::Setup(int _WallCount)
+void AProcedureRoom::Setup(int _WallCount,int _RoomHeight)
 {
 	this->WallCount = _WallCount;
+	this->WallHeight = _RoomHeight;
+}
+
+bool AProcedureRoom::GetExtendedBox(FVector& Output)
+{
+	if(!WallStaticMesh || !FloorStaticMesh)
+		return false;
+	auto WallSize = WallStaticMesh->GetBounds().BoxExtent;
+	Output = FVector(WallSize.Y*WallCount,WallSize.Y*WallCount,WallSize.Z*WallHeight);
+	return true;
+}
+
+void AProcedureRoom::GetCenter(FVector& Output)
+{
+	if(!WallStaticMesh || !FloorStaticMesh)
+		return;
+	auto WallSize = WallStaticMesh->GetBounds().BoxExtent;
+	auto Location = GetActorLocation();
+	Output = FVector(Location.X-(WallSize.Y*WallCount),Location.Y +(WallSize.Y*WallCount),Location.Z+(WallSize.Z*WallHeight));
+}
+
+FVector AProcedureRoom::GetRandomPointInside()
+{
+	if(!WallStaticMesh || !FloorStaticMesh)
+		return GetActorLocation();
+	auto WallSize = WallStaticMesh->GetBounds().BoxExtent;
+	auto Location = GetActorLocation();
+	return  FVector(Location.X-FMath::RandRange(0,(WallSize.Y*WallCount*2.0)),Location.Y +FMath::RandRange(0,(WallSize.Y*WallCount*2.0)),Location.Z);
 }
 
 

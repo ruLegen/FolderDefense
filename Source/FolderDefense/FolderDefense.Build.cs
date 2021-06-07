@@ -8,7 +8,7 @@ public class FolderDefense : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore","DesktopPlatform"});
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore","Niagara","DesktopPlatform","UMG","OnlineSubsystem","Json","JsonUtilities"});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 

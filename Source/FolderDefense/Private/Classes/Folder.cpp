@@ -4,75 +4,59 @@
 #include "Classes/Folder.h"
 #include "Classes/File.h"
 #include "FileUtils.h"
+#include "Net/UnrealNetwork.h"
 
-void UFolder::Init(const FString& FolderPath, UFolder* ParentFolder, int CurrentDepth)
+FFolder::FFolder()
 {
-	this->Path = FolderPath;
+}
+
+
+void FFolder::Init(const FString& FPath,  int CurrentDepth)
+{
+	this->Path = FPath;
 	this->Name = FPaths::GetBaseFilename(this->Path,true);
 	this->Depth = CurrentDepth;
-	this->Parent = TWeakObjectPtr<UFolder>(ParentFolder);
 }
 
-UFolder* UFolder::CreateInstace(FString FolderPath,int DepthLimit)
+
+FFolder FFolder::CreateInstace(FString FPath, int DepthLimit)
 {
-	int CurrentDepth = 0;
-	UFolder* Folder = NewObject<UFolder>();
-	Folder->Init(FolderPath,nullptr,CurrentDepth);
-	Folder->InitializeDirectories();
-	Folder->InitializeFiles();
-	if(DepthLimit == 0)
+		int CurrentDepth = 0;
+		FFolder Folder = FFolder();
+		Folder.Init(FPath,CurrentDepth);
+		Folder.InitializeDirectories();
+		Folder.InitializeFiles();
+		if(DepthLimit == 0)
+			return Folder;
 		return Folder;
-	TQueue<UFolder*> SubFolders;
-	// Init Queue with 1-st level directories
-	for (auto Directory : Folder->GetDirectories())
-	{
-		SubFolders.Enqueue(Directory);
-	}
-	while (!SubFolders.IsEmpty())
-	{
-		UFolder* CurrentSubFolder;
-		SubFolders.Dequeue(CurrentSubFolder);
-		if(!CurrentSubFolder)
-			continue;
-		if(CurrentSubFolder->Depth < DepthLimit)
-		{
-			CurrentSubFolder->InitializeDirectories();
-			CurrentSubFolder->InitializeFiles();
-			for (auto Directory : CurrentSubFolder->GetDirectories())
-			{
-				SubFolders.Enqueue(Directory);
-			}
-		}
-	}
-	return Folder;
 }
 
-bool UFolder::InitializeDirectories()
+
+
+bool FFolder::InitializeDirectories()
 {
 	auto DirectoryNames = UFileUtils::FindDirectories(GetPath(),true);
 	for (auto Directory : DirectoryNames)
 	{
-		UFolder* SubFolder = NewObject<UFolder>();
-		SubFolder->Init(Directory,this,this->Depth+1);
-		if(SubFolder->Name.Len() <= 1)
+		FFolder SubFolder=FFolder();
+		SubFolder.Init(Directory,this->Depth+1);
+		if(SubFolder.Name.Len() <= 1)
 		{
-			SubFolder->ConditionalBeginDestroy();
-			SubFolder = nullptr;
 			continue;
 		}
-		GetDirectories().Push(SubFolder);
+		GetDirectories().Push(SubFolder.Name);
 	}
 	bIsDirectoriesInitialized = true;
 	return bIsDirectoriesInitialized;
 }
 
-bool UFolder::InitializeFiles()
+bool FFolder::InitializeFiles()
 {
 	auto FileNames = UFileUtils::FindFiles(GetPath(),false);
 	for (auto FileName : FileNames)
 	{
-		UFile* File = NewObject<UFile>();
-		File->Init(FileName,this);
+		FFile File = FFile();
+		File.Init(FileName,this->Path);
 		Files.Push(File);
 	}
 	bIsFilesInitialized = true;

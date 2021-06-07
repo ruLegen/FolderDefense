@@ -24,6 +24,9 @@ protected:
 	int RoomSize = 10;
 
 	UPROPERTY(EditAnywhere)
+	int RoomHeight = 3;
+
+	UPROPERTY(EditAnywhere)
 	TSubclassOf<AProcedureRoom> RoomClass;
 	
 public:	

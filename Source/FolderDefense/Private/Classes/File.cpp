@@ -3,15 +3,12 @@
 
 #include "Classes/File.h"
 #include "Classes/Folder.h"
+#include "Net/UnrealNetwork.h"
 
 
-void UFile::Init(FString FileName, UFolder* ParentFolder)
+void FFile::Init(FString FileName,FString FolderPath)
 {
 	this->Name = FileName;
 	this->Type = FPaths::GetExtension(this->Name);
-	this->Parent = TWeakObjectPtr<UFolder>(ParentFolder);
-	if(this->Parent.IsValid())
-	{
-		this->Path = *Parent->GetPath()+FString("/");
-	}
+	this->Path =Path;
 }

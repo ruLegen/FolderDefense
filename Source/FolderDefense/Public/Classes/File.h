@@ -6,14 +6,17 @@
 #include "UObject/NoExportTypes.h"
 #include "File.generated.h"
 
-class UFolder;
+class AFolder;
 /**
  * 
  */
-UCLASS()
-class FOLDERDEFENSE_API UFile : public UObject
+USTRUCT()
+
+struct FFile
 {
 	GENERATED_BODY()
+public:
+	void Init(FString FileName,FString FolderPath);
 	
 	UPROPERTY(VisibleAnywhere)
 	FString Name;
@@ -23,9 +26,5 @@ class FOLDERDEFENSE_API UFile : public UObject
 
 	UPROPERTY(VisibleAnywhere)
 	FString Type;
-	
-	TWeakObjectPtr<UFolder> Parent;
 
-public:
-	void Init(FString FileName, UFolder * ParentFolder);
 };

@@ -3,19 +3,24 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
+#include "File.h"
 #include "UObject/NoExportTypes.h"
 #include "Folder.generated.h"
 
-class UFile;
+class AFile;
 
 /**
  * 
  */
-UCLASS()
-class FOLDERDEFENSE_API UFolder : public UObject
+USTRUCT()
+struct FFolder 
 {
 	GENERATED_BODY()
+public:
+	FFolder();
 
+private:
 	UPROPERTY(VisibleAnywhere)
 	FString Name;
 
@@ -31,43 +36,31 @@ class FOLDERDEFENSE_API UFolder : public UObject
 	UPROPERTY()
 	bool bIsFilesInitialized = false;
 
-	TWeakObjectPtr<UFolder> Parent;
-	
-	UPROPERTY(VisibleAnywhere)
-	TArray<UFolder*> Directories;
+	UPROPERTY()
+	TArray<FString> Directories;
 
-	UPROPERTY(VisibleAnywhere)
-	TArray<UFile*> Files;
+	UPROPERTY()
+	TArray<FFile> Files;
 
 
 public:
-	UFolder(){}
-	UFolder(const FString& Path)
+
+	FFolder(const FString& Path)
 	{
 		this->Path = Path; 
 	}
 
-	UFUNCTION()
-	void Init(const FString& FolderPath,UFolder* ParentFolder, int CurrentDepth);
-	UFUNCTION(BlueprintCallable)
+	void Init(const FString& FPath,int CurrentDepth);
 	FString GetPath() const {return Path;}
 	
-	UFUNCTION(BlueprintCallable)
-	UFolder* GetParent() const 	{ return Parent.Get();  }
+	TArray<FString>& GetDirectories() { return Directories;	}
 
-	UFUNCTION(BlueprintCallable)
-	TArray<UFolder*>& GetDirectories() { return Directories;	}
+	const TArray<FFile>& GetFiles() const	{	return Files;	}
 
-	UFUNCTION(BlueprintCallable)
-	const TArray<UFile*>& GetFiles() const	{	return Files;	}
-
-	UFUNCTION(BlueprintCallable)
-	static UFolder* CreateInstace(FString FolderPath,int DepthLimit);
+	static FFolder CreateInstace(FString FPath,int DepthLimit);
 
 protected:
-	UFUNCTION()
 	bool InitializeDirectories();			// Fill	Directories
-	UFUNCTION()
 	bool InitializeFiles();					// Fill	Files
 
 };
