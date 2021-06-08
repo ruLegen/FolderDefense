@@ -7,6 +7,7 @@
 #include "GameFramework/Controller.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
+#include "Net/UnrealNetwork.h"
 
 AFDBaseWeapon::AFDBaseWeapon()
 {
@@ -65,6 +66,12 @@ void AFDBaseWeapon::StopFire()
 {
 }
 
+void AFDBaseWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AFDBaseWeapon, CurrentAmmoData);
+}
+
 FVector AFDBaseWeapon::GetMuzzleWorldLocation() const
 {
 	return WeaponMesh->GetSocketLocation(MuzzleSocketName);
@@ -112,7 +119,8 @@ void AFDBaseWeapon::MakeHit(FHitResult& HitResult, FVector& TraceStart, FVector&
 
 }
 
-void AFDBaseWeapon::DecreaseAmmo()
+
+void AFDBaseWeapon::DecreaseAmmo_Implementation()
 {
 	if (CurrentAmmoData.Bullets == 0)
 	{
@@ -131,6 +139,7 @@ bool AFDBaseWeapon::IsAmmoEmpty()
 {
 	return !CurrentAmmoData.IsInfinity && CurrentAmmoData.Clips == 0 && IsClipEmpty();
 }
+
 
 bool AFDBaseWeapon::IsClipEmpty()
 {

@@ -39,6 +39,7 @@ void UFDHealthComponent::OnAnyDamage(AActor* DamagedActor, float Damage, const U
 	if (IsDead())
 	{
 		OnDeath.Broadcast();
+		OnDeathWithController.Broadcast(InstigatedBy);
 	}
 }
 

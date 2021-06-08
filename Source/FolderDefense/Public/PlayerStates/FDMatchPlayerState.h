@@ -45,7 +45,7 @@ public:
 	uint32 GetKills() { return Kills; }
 	uint32 GetDeaths() { return Deaths; }
 	uint32 GetPoints() { return Kills*2 - Deaths; }
-
+	FFolder& GetFolder(){return Folder;}
 	UFUNCTION(Server, reliable)
 	void UpdatePlayerFolder(const FString& FolderJSON);
 };

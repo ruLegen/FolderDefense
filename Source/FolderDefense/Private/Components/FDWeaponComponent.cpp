@@ -168,13 +168,15 @@ void UFDWeaponComponent::EquipWeapon_Implementation(int32 WeaponIndex)
 	EquipAnimInProgress = true;
 }
 
-void UFDWeaponComponent::PlayAnim(UAnimMontage* AnimMontage)
+void UFDWeaponComponent::PlayAnim_Implementation(UAnimMontage* AnimMontage)
 {
 	ACharacter *Character = Cast<ACharacter>(GetOwner());
 	if (!Character)
 		return;
 	Character->PlayAnimMontage(AnimMontage);
 }
+
+
 
 void UFDWeaponComponent::InitAnimations()
 {
@@ -232,12 +234,14 @@ bool UFDWeaponComponent::CanReload()
 	return CurrentWeapon != nullptr && !EquipAnimInProgress && !ReloadAnimInProgress && CurrentWeapon->CanReload();
 }
 
-void UFDWeaponComponent::OnEmptyClip()
+void UFDWeaponComponent::OnEmptyClip_Implementation()
 {
 	ChangeClip();
 }
 
-void UFDWeaponComponent::ChangeClip()
+
+
+void UFDWeaponComponent::ChangeClip_Implementation()
 {
 	if (!CanReload())
 		return;

@@ -3,12 +3,16 @@
 
 #include "Meshes/ProcedureRoom.h"
 
+#include "GameEntities/FDFolderActor.h"
+#include "Net/UnrealNetwork.h"
+
 
 // Sets default values
 AProcedureRoom::AProcedureRoom()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
+	bReplicates = true;
 	WallInstanceHolder = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("Wall"));
 	FloorInstanceHolder = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("Floor"));
 	RootComponent = WallInstanceHolder;
@@ -24,6 +28,19 @@ void AProcedureRoom::BeginPlay()
 	if(FloorStaticMesh && FloorInstanceHolder)
 		FloorInstanceHolder->SetStaticMesh(FloorStaticMesh);
 	GenerateRoom();
+	GenerateFolders();
+}
+
+void AProcedureRoom::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AProcedureRoom, WallCount);
+	DOREPLIFETIME(AProcedureRoom, WallHeight);
+	DOREPLIFETIME(AProcedureRoom, Folders);
+	DOREPLIFETIME(AProcedureRoom, Files);
+	DOREPLIFETIME(AProcedureRoom, Folder);
+	
+	
 }
 
 void AProcedureRoom::OnConstruction(const FTransform& Transform)
@@ -32,7 +49,7 @@ void AProcedureRoom::OnConstruction(const FTransform& Transform)
 }
 
 
-void AProcedureRoom::GenerateRoom()
+void AProcedureRoom::GenerateRoom_Implementation()
 {
 	if(!WallStaticMesh || !FloorStaticMesh || !WallInstanceHolder )
 		return;
@@ -42,7 +59,7 @@ void AProcedureRoom::GenerateRoom()
 	WallInstanceHolder->ClearInstances();
 	for (int h = 1; h <= WallHeight; h++)	/// Generates Height Walls
 	{
-		for (int i = 0; i <= 3; i++)		// Rotate Wall Generator
+		for (int i = 0; i <= 2; i++)		// Rotate Wall Generator
 		{
 			for (int j = 0; j < WallCount; j++)	// Walls
 			{
@@ -86,7 +103,8 @@ void AProcedureRoom::GenerateRoom()
 	
 }
 
-void AProcedureRoom::Setup(int _WallCount,int _RoomHeight)
+
+void AProcedureRoom::Setup_Implementation(int _WallCount, int _RoomHeight)
 {
 	this->WallCount = _WallCount;
 	this->WallHeight = _RoomHeight;
@@ -117,6 +135,37 @@ FVector AProcedureRoom::GetRandomPointInside()
 	auto WallSize = WallStaticMesh->GetBounds().BoxExtent;
 	auto Location = GetActorLocation();
 	return  FVector(Location.X-FMath::RandRange(0,(WallSize.Y*WallCount*2.0)),Location.Y +FMath::RandRange(0,(WallSize.Y*WallCount*2.0)),Location.Z);
+}
+
+void AProcedureRoom::InitFolder_Implementation(FFolder FolderStruct)
+{
+	this->Folder = FolderStruct;
+}
+
+void AProcedureRoom::GenerateFolders_Implementation()
+{
+	auto World = GetWorld();
+	if(!World) return;
+
+	
+	if(Folder.bIsDirectoriesInitialized)
+	{
+		check(FolderClass);
+		for (auto Directory : Folder.GetDirectories())
+		{
+			FVector FolderLocation = GetRandomPointInside();
+			auto CreatedFolder = World->SpawnActorDeferred<AFDEntityActorBase>(FolderClass,FTransform(FolderLocation),GetOwner());
+			FString Name = Folder.GetPath()+Directory;
+			CreatedFolder->SetEntityName(Name);
+			CreatedFolder->FinishSpawning(FTransform(FolderLocation));
+			Folders.Push(CreatedFolder);
+		}
+		
+	}
+}
+
+void AProcedureRoom::GenerateFiles_Implementation()
+{
 }
 
 

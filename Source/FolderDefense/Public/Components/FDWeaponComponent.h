@@ -89,8 +89,11 @@ public:
 	void UpdateTest(const FString& FolderJSON);
 	
 	void AttachWeaponToSocket(AFDBaseWeapon* Weapon, USceneComponent *Mesh, FName SocketName);
+
 	UFUNCTION(BlueprintCallable,Server,Reliable)
 	void EquipWeapon(int32 WeaponIndex);
+
+	UFUNCTION(NetMulticast,Reliable)
 	void PlayAnim(UAnimMontage *AnimMontage);
 	void InitAnimations();
 	void OnEquipedFinished(USkeletalMeshComponent *SkeletalMesh);
@@ -98,7 +101,9 @@ public:
 	bool CanFire();
 	bool CanEquip();
 	bool CanReload();
+	UFUNCTION(NetMulticast,Reliable)
 	void OnEmptyClip();
+	UFUNCTION(NetMulticast,Reliable)
 	void ChangeClip();
 	template <class T> T *FindAnimNotifyByClass(UAnimSequenceBase* Animation);
 

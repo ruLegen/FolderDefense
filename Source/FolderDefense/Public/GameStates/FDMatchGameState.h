@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameState.h"
+#include "World/FDRoomHandler.h"
+
 #include "FDMatchGameState.generated.h"
 
 /**
@@ -23,26 +25,31 @@ protected:
 
 	UPROPERTY(ReplicatedUsing=OnRep_GameOver)
 	bool bIsGameOver = false;
-	
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<AProcedureRoom> RoomClass;
+
 	UPROPERTY(Replicated)
 	int ReadyPlayerCount = 0;
 	UPROPERTY()
-	float DelayOnEmpty = 4;	// Seconds; Delay for next round if All players has no bullets
+	float DelayOnEmpty = 1;	// Seconds; Delay for next round if All players has no bullets
 	
 	UPROPERTY()
-	float DelayAfterDeath = 1.1245657564;	// Seconds; Delay before EndRound
+	float DelayAfterDeath = 0.2;	// Seconds; Delay before EndRound
 
 	UPROPERTY()
-	float DelayOnEndRound = 2;	// Seconds; How many seconds between EndRound and RestartRound
+	float DelayOnEndRound = 0.2;	// Seconds; How many seconds between EndRound and RestartRound
 
 	UPROPERTY(replicated)
-	float DelayOnStartRound = FMath::RandRange(5,10);	// Seconds; Delay before can shoot
+	float DelayOnStartRound = FMath::RandRange(1,1);	// Seconds; Delay before can shoot
 	
 	UPROPERTY(Replicated)
 	int32 EmptyPlayersCount= 0;		// Count how many players has no ammo
 
 	FTimerHandle Timer;
-	
+	UPROPERTY(EditDefaultsOnly)
+	int MinReadyPlayerCount = 2;
+
 	UFUNCTION()
 	void OnRep_RoundChanged();
 	
@@ -50,7 +57,7 @@ protected:
 	void OnRep_GameOver();
 
 
-	public:
+public:
 	FGameStateEventSignature OnRoundStart;		// Called when players can shoot
 	FGameStateEventSignature OnRoundEnd;		// Called when Someone died
 	FGameStateEventSignature OnRoundChanged;	// Called After End and before Start
@@ -64,6 +71,9 @@ protected:
 	UFUNCTION(Server, Reliable)
 	void NextRound();
 	
+	UFUNCTION(Server, Reliable)
+	void SpawnRooms();
+
 	UFUNCTION(NetMulticast, Reliable)
 	void OnChangeRound();
 

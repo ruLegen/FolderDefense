@@ -7,6 +7,7 @@
 #include "FDHealthComponent.generated.h"
 
 DECLARE_MULTICAST_DELEGATE(FOnDeath);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnDeathWithController,AController*);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnHealthChanged,float);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -26,6 +27,7 @@ public:
 
 	bool TryAddHealth(int32 Amount);
 	FOnDeath OnDeath;
+	FOnDeathWithController OnDeathWithController;
 	FOnHealthChanged OnHealthChanged;
 
 	UPROPERTY(EditAnywhere,Category="AutoHeal")

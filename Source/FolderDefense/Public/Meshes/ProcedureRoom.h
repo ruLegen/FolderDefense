@@ -3,10 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
+#include "Classes/Folder.h"
+#include "GameEntities/FDFolderActor.h"
 #include "GameFramework/Actor.h"
 #include "ProcedureRoom.generated.h"
 
 
+class AFDEntityActorBase;
 UCLASS()
 class FOLDERDEFENSE_API AProcedureRoom : public AActor
 {
@@ -15,16 +19,18 @@ class FOLDERDEFENSE_API AProcedureRoom : public AActor
 public:	
 	// Sets default values for this actor's properties
 	AProcedureRoom();
-
+	
+	UPROPERTY(EditAnywhere,Replicated)
+	int WallCount = 1;
+	
+	UPROPERTY(EditAnywhere,Replicated)
+	int WallHeight = 1;
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void OnConstruction(const FTransform & Transform) override;
-	UPROPERTY(EditAnywhere)
-	int WallCount = 1;
-	UPROPERTY(EditAnywhere)
-	int WallHeight = 1;
+	
 
 	UPROPERTY(EditDefaultsOnly)
 	UInstancedStaticMeshComponent* WallInstanceHolder;
@@ -36,14 +42,34 @@ protected:
 	
 	UPROPERTY(EditAnywhere)
 	UStaticMesh* FloorStaticMesh;
+
+
+	
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<AFDEntityActorBase> FolderClass;
+
+	UPROPERTY(EditAnywhere,Replicated)
+	TArray<AFDEntityActorBase*> Folders;
+
+	UPROPERTY(EditAnywhere,Replicated)
+	TArray<AFDEntityActorBase*> Files;
+
+	UPROPERTY(EditAnywhere,Replicated)
+	FFolder Folder;
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable,NetMulticast,Reliable)
 	void GenerateRoom();
-
-	UFUNCTION(BlueprintCallable)
+	
+	UFUNCTION(BlueprintCallable,Server,Reliable)
+	void GenerateFolders();
+	
+	UFUNCTION(BlueprintCallable,Server,Reliable)
+	void GenerateFiles();
+	
+	UFUNCTION(BlueprintCallable,Server,Reliable)
 	void Setup(int _WallCount,int _RoomHeight);
 
 	UFUNCTION(BlueprintCallable)
@@ -54,4 +80,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	FVector GetRandomPointInside();
+
+	UFUNCTION(Server, Reliable)
+	void InitFolder(FFolder FolderStruct);
 };

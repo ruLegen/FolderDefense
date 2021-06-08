@@ -6,6 +6,7 @@
 #include "GameModes/FDMatchGameMode.h"
 #include "Net/UnrealNetwork.h"
 #include "PlayerStates/FDMatchPlayerState.h"
+#include "World/FDRoomHandler.h"
 
 void AFDMatchGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -33,7 +34,7 @@ void AFDMatchGameState::OnRep_GameOver()
 void AFDMatchGameState::Ready_Implementation()
 {
 	ReadyPlayerCount++;
-	if(ReadyPlayerCount >= 2 && GetWorld())
+	if(ReadyPlayerCount >= MinReadyPlayerCount && GetWorld())
 	{
 		auto MatchGameMode = GetWorld()->GetAuthGameMode<AFDMatchGameMode>();
 		MatchGameMode->ClearPause();
@@ -118,10 +119,31 @@ void AFDMatchGameState::NextRound_Implementation()
 	}, DelayAfterDeath, false);
 }
 
-void AFDMatchGameState::StartRound_Implementation()
+void AFDMatchGameState:: StartRound_Implementation()
 {
 	GetWorld()->GetTimerManager().SetTimer(Timer,
 		[&]() {
 			OnRoundStart.Broadcast();
+			SpawnRooms();
+			
 		}, DelayOnStartRound, false);
+}
+
+void AFDMatchGameState::SpawnRooms_Implementation()
+{
+	auto World = GetWorld();
+	if(!World) return;
+
+	int i = 0;
+	for (auto PlayerState : PlayerArray)
+	{
+		auto MatchPlayerState = Cast<AFDMatchPlayerState>(PlayerState);
+		if(!MatchPlayerState) continue;
+		check(RoomClass);
+		auto Room = World->SpawnActorDeferred<AProcedureRoom>(RoomClass,FTransform(FVector(i*900,0,0)),MatchPlayerState->GetOwner());
+		Room->Setup(2,1);
+		Room->InitFolder(MatchPlayerState->GetFolder());
+		Room->FinishSpawning(FTransform(FVector(i*900,0,0)));
+		i++;
+	}
 }

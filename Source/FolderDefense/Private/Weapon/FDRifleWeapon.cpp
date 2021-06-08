@@ -18,20 +18,16 @@ AFDRifleWeapon::AFDRifleWeapon()
 
 void AFDRifleWeapon::MakeShot()
 {
-	UE_LOG(LogTemp,Warning,TEXT("MakingShot"));
 	if (!GetWorld() || IsAmmoEmpty())
 		return;
-	UE_LOG(LogTemp,Warning,TEXT("World OK"));
 
 	const auto Player = Cast<ACharacter>(GetOwner());
 	if (!Player)
 		return;
-	UE_LOG(LogTemp,Warning,TEXT("Player OK"));
 
 	const auto PlayerController = Player->GetController<APlayerController>();
 	if (!PlayerController)
 		return;
-	UE_LOG(LogTemp,Warning,TEXT("Controller OK"));
 
 	FVector ViewLocation;
 	FRotator ViewRotation;
@@ -79,11 +75,9 @@ void AFDRifleWeapon::Hit_Implementation( FVector TraceStart, FVector TraceEnd)
 	{
 		//WeaponFXComponent->PlayImpactFX(HitResult);
 		AActor *HitActor = HitResult.Actor.Get();
-		UE_LOG(LogTemp,Warning,TEXT("HITED "));
 		if (!HitActor)
 			return;
 		GEngine->AddOnScreenDebugMessage(0,1,FColor::Blue,"Hitted Actor");
-		UE_LOG(LogTemp,Warning,TEXT("HITED ACTOR"));
 		
 		const auto Player = Cast<ACharacter>(GetOwner());
 		if (!Player)
@@ -93,8 +87,6 @@ void AFDRifleWeapon::Hit_Implementation( FVector TraceStart, FVector TraceEnd)
 			return;
 		GEngine->AddOnScreenDebugMessage(0,1,FColor::Blue,"Applyed Actor");
 		HitActor->TakeDamage(10, {}, PlayerController, Player);
-		//ApplyDamage(HitActor,PlayerController,Player);
-		//HitActor->TakeDamage(10, {}, PlayerController, Player);
 	}
 	else
 	{
@@ -106,12 +98,10 @@ void AFDRifleWeapon::Hit_Implementation( FVector TraceStart, FVector TraceEnd)
 
 void AFDRifleWeapon::StartFire()
 {
-	UE_LOG(LogTemp,Warning,TEXT("MakingShot %d, %d"),GetLocalRole(),GetRemoteRole());
-
 	GEngine->AddOnScreenDebugMessage(0,1,FColor::Blue,"Start Fire");
-	MakeShot();
+	//MakeShot();
 	InitMuzzleFX();
-	//GetWorld()->GetTimerManager().SetTimer(FireTimerHandle, this, &AFDBaseWeapon::MakeShot, FireRate, true);
+	GetWorld()->GetTimerManager().SetTimer(FireTimerHandle, this, &AFDRifleWeapon::MakeShot, FireRate, true);
 }
 
 void AFDRifleWeapon::StopFire()

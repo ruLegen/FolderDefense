@@ -30,11 +30,6 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	int Depth = 0;
 
-	UPROPERTY()
-	bool bIsDirectoriesInitialized = false;
-
-	UPROPERTY()
-	bool bIsFilesInitialized = false;
 
 	UPROPERTY()
 	TArray<FString> Directories;
@@ -44,6 +39,11 @@ private:
 
 
 public:
+	UPROPERTY()
+	bool bIsDirectoriesInitialized = false;
+
+	UPROPERTY()
+	bool bIsFilesInitialized = false;
 
 	FFolder(const FString& Path)
 	{
@@ -51,7 +51,7 @@ public:
 	}
 
 	void Init(const FString& FPath,int CurrentDepth);
-	FString GetPath() const {return Path;}
+	FString GetPath() const {return Path+"/";}
 	
 	TArray<FString>& GetDirectories() { return Directories;	}
 

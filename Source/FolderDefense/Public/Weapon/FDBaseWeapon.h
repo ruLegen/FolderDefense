@@ -82,12 +82,13 @@ public:
 	
 	UNiagaraComponent* SpawnMuzzleFX();
 	private:
-	UPROPERTY(EditAnyWhere, Category = "Ammunition")
+	UPROPERTY(EditAnyWhere, Replicated, Category = "Ammunition")
 	FAmmoData CurrentAmmoData;
 
 	public:
 	virtual void StartFire();
 	virtual void StopFire();
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	FVector GetMuzzleWorldLocation() const;
 	APlayerController *GetPlayerController() const;
 	bool GetPlayerViewPoint(FVector &ViewLocation, FRotator &ViewRotation) const;
@@ -96,6 +97,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void MakeHit(FHitResult &HitResult, FVector &TraceStart, FVector &TraceEnd);
 
+	UFUNCTION(Server,Reliable)
 	void DecreaseAmmo();
 	bool IsAmmoEmpty();
 	bool IsClipEmpty();
