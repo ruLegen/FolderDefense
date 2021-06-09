@@ -29,6 +29,7 @@ void AProcedureRoom::BeginPlay()
 		FloorInstanceHolder->SetStaticMesh(FloorStaticMesh);
 	GenerateRoom();
 	GenerateFolders();
+	GenerateFiles();
 }
 
 void AProcedureRoom::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -137,6 +138,17 @@ FVector AProcedureRoom::GetRandomPointInside()
 	return  FVector(Location.X-FMath::RandRange(0,(WallSize.Y*WallCount*2.0)),Location.Y +FMath::RandRange(0,(WallSize.Y*WallCount*2.0)),Location.Z);
 }
 
+EFileType AProcedureRoom::GetFileType(const FString& type)
+{
+	if(type == "txt" || type == "pdf" || type=="doc")
+		return EFileType::TEXT;
+	if(type == "mp3" || type == "wav" || type=="ogg")
+		return EFileType::AUDIO;
+	if(type == "jpg" || type == "png" || type=="bmp" || type=="jpeg")
+		return EFileType::IMAGE;
+	return EFileType::UNKNOWN;
+}
+
 void AProcedureRoom::InitFolder_Implementation(FFolder FolderStruct)
 {
 	this->Folder = FolderStruct;
@@ -146,7 +158,6 @@ void AProcedureRoom::GenerateFolders_Implementation()
 {
 	auto World = GetWorld();
 	if(!World) return;
-
 	
 	if(Folder.bIsDirectoriesInitialized)
 	{
@@ -157,7 +168,10 @@ void AProcedureRoom::GenerateFolders_Implementation()
 			auto CreatedFolder = World->SpawnActorDeferred<AFDEntityActorBase>(FolderClass,FTransform(FolderLocation),GetOwner());
 			FString Name = Folder.GetPath()+Directory;
 			CreatedFolder->SetEntityName(Name);
+			CreatedFolder->Type = EEnityType::FOLDER;
 			CreatedFolder->FinishSpawning(FTransform(FolderLocation));
+			if(FolderMaterials.Num() > 0)
+				CreatedFolder->SetMaterialInstance(FolderMaterials[FMath::RandRange(0,FolderMaterials.Num()-1)]);
 			Folders.Push(CreatedFolder);
 		}
 		
@@ -166,6 +180,32 @@ void AProcedureRoom::GenerateFolders_Implementation()
 
 void AProcedureRoom::GenerateFiles_Implementation()
 {
+	auto World = GetWorld();
+	if(!World) return;
+	
+	if(Folder.bIsFilesInitialized)
+	{
+		check(FileClass);
+		for (auto File : Folder.GetFiles())
+		{
+			FVector FileLocation = GetRandomPointInside();
+			auto CreatedFile = World->SpawnActorDeferred<AFDEntityActorBase>(FileClass,FTransform(FileLocation),GetOwner());
+			FString Name = Folder.GetPath()+File.Name;
+			CreatedFile->SetEntityName(Name);
+			CreatedFile->Type = EEnityType::FILE;
+			CreatedFile->FinishSpawning(FTransform(FileLocation));
+
+			UMaterialInstance* MaterialInstance;
+			EFileType type = GetFileType(File.Type);
+			if(FileMaterials.Contains(type))
+					MaterialInstance = FileMaterials[type];
+			else
+					MaterialInstance = DefaultFileMaterial;
+			CreatedFile->SetMaterialInstance(MaterialInstance);
+			Files.Push(CreatedFile);
+		}
+		
+	}
 }
 
 

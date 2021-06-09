@@ -141,9 +141,9 @@ void AFDMatchGameState::SpawnRooms_Implementation()
 		if(!MatchPlayerState) continue;
 		check(RoomClass);
 		auto Room = World->SpawnActorDeferred<AProcedureRoom>(RoomClass,FTransform(FVector(i*900,0,0)),MatchPlayerState->GetOwner());
-		Room->Setup(2,1);
+		Room->Setup(4,1);
 		Room->InitFolder(MatchPlayerState->GetFolder());
-		Room->FinishSpawning(FTransform(FVector(i*900,0,0)));
+		Room->FinishSpawning(FTransform(FVector(i*1600,0,0)));
 		i++;
 	}
 }

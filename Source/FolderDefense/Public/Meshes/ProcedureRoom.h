@@ -8,7 +8,15 @@
 #include "GameEntities/FDFolderActor.h"
 #include "GameFramework/Actor.h"
 #include "ProcedureRoom.generated.h"
-
+UENUM(BlueprintType)
+enum class EFileType :uint8
+{
+	TEXT,
+	AUDIO,
+	IMAGE,
+	UNKNOWN,
+	MAX
+};
 
 class AFDEntityActorBase;
 UCLASS()
@@ -48,6 +56,9 @@ protected:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<AFDEntityActorBase> FolderClass;
 
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<AFDEntityActorBase> FileClass;
+	
 	UPROPERTY(EditAnywhere,Replicated)
 	TArray<AFDEntityActorBase*> Folders;
 
@@ -56,6 +67,17 @@ protected:
 
 	UPROPERTY(EditAnywhere,Replicated)
 	FFolder Folder;
+
+	UPROPERTY(EditAnywhere)
+	TArray<UMaterialInstance*> FolderMaterials;								// Array of Folder  Material
+	
+	UPROPERTY(EditAnywhere)
+	TMap<EFileType,UMaterialInstance*> FileMaterials;						// Map File extension with Material
+
+	UPROPERTY(EditAnywhere)
+	UMaterialInstance* DefaultFileMaterial;									// Default File Material
+	
+	
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -83,4 +105,6 @@ public:
 
 	UFUNCTION(Server, Reliable)
 	void InitFolder(FFolder FolderStruct);
+	
+	EFileType GetFileType(const FString& CS);
 };

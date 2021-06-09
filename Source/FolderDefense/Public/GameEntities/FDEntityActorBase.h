@@ -3,13 +3,19 @@
 #pragma once
 
 #include "CoreMinimal.h"
-
 #include "Components/TextRenderComponent.h"
-
-
 #include "FDEntityActorBase.generated.h"
 
 class UFDHealthComponent;
+
+UENUM(BlueprintType)
+enum class EEnityType :uint8
+{
+	FOLDER,
+	FILE,
+	MAX
+};
+
 USTRUCT()
 struct FEntityData
 {
@@ -26,9 +32,9 @@ protected:
 	UFDHealthComponent * HealthComponent;
 
 	UPROPERTY(EditDefaultsOnly)
-	USkeletalMeshComponent* SkeletalMeshComponent;
+	UStaticMeshComponent* MeshComponent;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly,Replicated)
 	UTextRenderComponent* TextComponent;
 
 	UPROPERTY(EditDefaultsOnly)
@@ -39,14 +45,19 @@ protected:
 
 	AFDEntityActorBase();
 
-protected:
+
 	virtual void BeginPlay() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 public:
+	EEnityType Type = EEnityType::FOLDER;
 	virtual void Tick(float DeltaTime) override;
 	void OnDie(AController* KilledBy);
-	public:
-	void SetEntityName(const FString& EntityName);
 	
-
+	UFUNCTION(NetMulticast,Reliable)
+	void SetEntityName(const FString& EName);
+	
+	UFUNCTION(NetMulticast,Reliable)
+	void UpdateEnityName();
+	UFUNCTION(NetMulticast,Reliable)
+	void SetMaterialInstance(UMaterialInstance* MaterialInstance);
 };
