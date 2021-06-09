@@ -28,8 +28,11 @@ void AProcedureRoom::BeginPlay()
 	if(FloorStaticMesh && FloorInstanceHolder)
 		FloorInstanceHolder->SetStaticMesh(FloorStaticMesh);
 	GenerateRoom();
-	GenerateFolders();
-	GenerateFiles();
+	if(HasAuthority())
+	{
+		GenerateFolders();
+		GenerateFiles();
+	}
 }
 
 void AProcedureRoom::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -158,7 +161,7 @@ void AProcedureRoom::GenerateFolders_Implementation()
 {
 	auto World = GetWorld();
 	if(!World) return;
-	
+	int32 Id = 0;
 	if(Folder.bIsDirectoriesInitialized)
 	{
 		check(FolderClass);
@@ -168,11 +171,14 @@ void AProcedureRoom::GenerateFolders_Implementation()
 			auto CreatedFolder = World->SpawnActorDeferred<AFDEntityActorBase>(FolderClass,FTransform(FolderLocation),GetOwner());
 			FString Name = Folder.GetPath()+Directory;
 			CreatedFolder->SetEntityName(Name);
-			CreatedFolder->Type = EEnityType::FOLDER;
+			CreatedFolder->SetId(Id);
+			CreatedFolder->Type = EEntityType::FOLDER;
+			CreatedFolder->SetParentFolderClass(Folder);
 			CreatedFolder->FinishSpawning(FTransform(FolderLocation));
 			if(FolderMaterials.Num() > 0)
 				CreatedFolder->SetMaterialInstance(FolderMaterials[FMath::RandRange(0,FolderMaterials.Num()-1)]);
 			Folders.Push(CreatedFolder);
+			Id++;
 		}
 		
 	}
@@ -192,8 +198,9 @@ void AProcedureRoom::GenerateFiles_Implementation()
 			auto CreatedFile = World->SpawnActorDeferred<AFDEntityActorBase>(FileClass,FTransform(FileLocation),GetOwner());
 			FString Name = Folder.GetPath()+File.Name;
 			CreatedFile->SetEntityName(Name);
-			CreatedFile->Type = EEnityType::FILE;
+			CreatedFile->Type = EEntityType::FILE;
 			CreatedFile->FinishSpawning(FTransform(FileLocation));
+			CreatedFile->SetParentFolderClass(Folder);
 
 			UMaterialInstance* MaterialInstance;
 			EFileType type = GetFileType(File.Type);

@@ -10,5 +10,10 @@ void FFile::Init(FString FileName,FString FolderPath)
 {
 	this->Name = FileName;
 	this->Type = FPaths::GetExtension(this->Name);
-	this->Path =Path;
+	this->Path =FolderPath;
+}
+
+FString FFile::GetPath()
+{
+	return Path+"/";
 }

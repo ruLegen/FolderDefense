@@ -1,7 +1,13 @@
 #include "GameEntities/FDEntityActorBase.h"
+
+#include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
 #include "Components/FDHealthComponent.h"
 #include "GameFramework/Actor.h"
+#include "GameStates/FDMatchGameState.h"
+#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
+#include "PlayerStates/FDMatchPlayerState.h"
 
 AFDEntityActorBase::AFDEntityActorBase()
 {
@@ -35,6 +41,19 @@ void AFDEntityActorBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AFDEntityActorBase, HealthComponent);
 	DOREPLIFETIME(AFDEntityActorBase, TextComponent);
+	DOREPLIFETIME(AFDEntityActorBase, Id);
+	DOREPLIFETIME(AFDEntityActorBase, ParentFolderClass);
+	
+}
+
+void AFDEntityActorBase::SetId_Implementation(int32 NewId)
+{
+	this->Id = NewId;
+}
+
+void AFDEntityActorBase::SetParentFolderClass_Implementation(const FFolder& Folder)
+{
+	this->ParentFolderClass = Folder;
 }
 
 void AFDEntityActorBase::Tick(float DeltaTime)
@@ -42,15 +61,35 @@ void AFDEntityActorBase::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
+void AFDEntityActorBase::SpawnNiagaraEffect_Implementation(UNiagaraSystem* NiagaraSystem,FLinearColor Color)
+{
+	UE_LOG(LogTemp,Warning,TEXT("Niagara tryed"));
+	if(!NiagaraSystem || !GetWorld()) return;
+	UE_LOG(LogTemp,Warning,TEXT("Niagara Spawned"));
+	auto Effect = UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(),NiagaraSystem,GetActorLocation(),GetActorRotation());
+	Effect->SetColorParameter("Color",Color);
+}
+
 void AFDEntityActorBase::OnDie(AController* KilledBy)
 {
-	Destroy();
 	switch (Type)
 	{
-		case EEnityType::FILE: UE_LOG(LogTemp,Warning,TEXT("Killed FILE")); break;
-		case EEnityType::FOLDER: UE_LOG(LogTemp,Warning,TEXT("Killed FOLDER")); break;
+		case EEntityType::FILE:
+			SpawnNiagaraEffect(NiagaraDieEffect,FLinearColor::MakeRandomColor());
+		break;
+		case EEntityType::FOLDER:
+			SpawnNiagaraEffect(NiagaraDieEffect,FLinearColor::Blue);
+		
+			break;
 	default: ;
 	}
+	if(!GetWorld()) return;
+		
+	auto MatchGameState = GetWorld()->GetGameState<AFDMatchGameState>();
+	if(!MatchGameState) return;
+
+	MatchGameState->NofifyKill(ParentFolderClass,KilledBy,Type,EntityName);
+	Destroy();
 }
 
 void AFDEntityActorBase::SetMaterialInstance_Implementation(UMaterialInstance* MaterialInstance)

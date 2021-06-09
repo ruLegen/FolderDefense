@@ -57,8 +57,11 @@ protected:
 
 	template <class T >
 	void RemoveAllActorsByClass();
-	public:
+public:
 	AFDMatchGameMode();
+
+	// Return all Player's Controller
+	TArray<AFDMatchPlayerController*>& GetPlayerArray(){ return  Players;};
 	
 	int32 GetMaxRounds() { return MaxRounds; }
 	int32 GetMaxPlayers() { return MaxPlayers; }

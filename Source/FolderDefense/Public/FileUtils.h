@@ -35,4 +35,8 @@ public:
 	*/
 	UFUNCTION(BlueprintCallable)
 	static TArray<FString> FindFiles(const FString SearchDirectory,bool bAbsolute);
+
+
+	UFUNCTION(BlueprintCallable,meta = (WorldContext = "WorldContextObject"))
+	static int TestSomeFun(FString URL);
 };

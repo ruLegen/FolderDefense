@@ -63,7 +63,10 @@ public:
 	FGameStateEventSignature OnRoundChanged;	// Called After End and before Start
 	FGameStateEventSignature OnGameOver;
 	
-	int32 GetCurrentRound() { return CurrentRound; };
+	int32 GetCurrentRound() { return CurrentRound; }
+	
+	UFUNCTION(Server,Reliable)
+	void NofifyKill(const FFolder& Folder, AController* Controller, EEntityType Type, const FString& Name);
 
 	UFUNCTION(Server, Reliable)
 	void Ready();

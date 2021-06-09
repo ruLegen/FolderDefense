@@ -19,6 +19,11 @@ void FFolder::Init(const FString& FPath,  int CurrentDepth)
 }
 
 
+bool FFolder::operator==(const FFolder& Folder)
+{
+	return GetPath().Equals(Folder.GetPath()) && Name.Equals(Folder.Name);
+}
+
 FFolder FFolder::CreateInstace(FString FPath, int DepthLimit)
 {
 		int CurrentDepth = 0;

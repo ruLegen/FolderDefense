@@ -31,6 +31,45 @@ void AFDMatchGameState::OnRep_GameOver()
 		OnGameOver.Broadcast();
 }
 
+/*
+* Find PlayerStat where folder & file were killed
+* Then Call NotifyKill for this player start;
+*/
+
+void AFDMatchGameState::NofifyKill_Implementation(const FFolder& Folder, AController* Controller, EEntityType Type, const FString& Name)
+{
+	for (auto Player : PlayerArray)
+	{
+		auto MatchPlayerState = Cast<AFDMatchPlayerState>(Player);
+		if(!MatchPlayerState) return;
+
+		if(MatchPlayerState->GetFolder() == Folder)
+		{
+			MatchPlayerState->NotifyKill(Controller,Type,Name);
+		}
+	}
+	if(!GetWorld()) return;;
+
+	auto MatchGameMode = GetWorld()->GetAuthGameMode<AFDMatchGameMode>();
+	if(!MatchGameMode) return;
+
+	for(auto Player : MatchGameMode->GetPlayerArray())
+	{
+		if(!Player) return;
+
+		auto PlayersGameState = Player->GetPlayerState<AFDMatchPlayerState>();
+		if(!PlayersGameState) return;
+		if(PlayersGameState->IsDefeat())
+		{
+			bIsGameOver = true;
+			OnGameOver.Broadcast();
+			UE_LOG(LogTemp,Warning,TEXT("Player %s defeat"),*Player->GetName());
+		}
+	}
+}
+
+
+
 void AFDMatchGameState::Ready_Implementation()
 {
 	ReadyPlayerCount++;

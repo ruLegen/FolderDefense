@@ -54,8 +54,8 @@ public:
 	FString GetPath() const {return Path+"/";}
 	
 	TArray<FString>& GetDirectories() { return Directories;	}
-
-	const TArray<FFile>& GetFiles() const	{	return Files;	}
+	TArray<FFile>& GetFiles() {	return Files;	}
+	bool operator==(const FFolder& Folder);
 
 	static FFolder CreateInstace(FString FPath,int DepthLimit);
 

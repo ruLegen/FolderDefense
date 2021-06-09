@@ -5,6 +5,8 @@
 
 #include "FileUtils.h"
 
+#include "GenericPlatform/GenericPlatformOutputDevices.h"
+#include "Misc/OutputDeviceDebug.h"
 
 
 bool UFileUtils::OpenFileDialog(FString& Directory)
@@ -64,5 +66,11 @@ TArray<FString> UFileUtils::FindFiles(const FString SearchDirectory,bool bAbsolu
 		}
 	}
 	return  output;
+}
+
+int UFileUtils::TestSomeFun(FString URL)
+{
+	auto device = FOutputDeviceDebug();
+	return system(TCHAR_TO_ANSI(*URL));
 }
 

@@ -3,13 +3,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
+#include "Classes/Folder.h"
 #include "Components/TextRenderComponent.h"
 #include "FDEntityActorBase.generated.h"
 
+class UNiagaraSystem;
 class UFDHealthComponent;
 
 UENUM(BlueprintType)
-enum class EEnityType :uint8
+enum class EEntityType :uint8
 {
 	FOLDER,
 	FILE,
@@ -28,6 +31,8 @@ class FOLDERDEFENSE_API AFDEntityActorBase : public AActor
 {
 	GENERATED_BODY()
 protected:
+
+	
 	UPROPERTY(EditAnywhere,Replicated)
 	UFDHealthComponent * HealthComponent;
 
@@ -43,14 +48,36 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	FString EntityName;
 
+	UPROPERTY(EditDefaultsOnly,Replicated)
+	FFolder ParentFolderClass;
+
+	UPROPERTY(EditDefaultsOnly, replicated, Category = "VFX")
+	UParticleSystem* MuzzleFlash;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FX")
+	UNiagaraSystem* NiagaraDieEffect;
+	
 	AFDEntityActorBase();
 
 
 	virtual void BeginPlay() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 public:
-	EEnityType Type = EEnityType::FOLDER;
+	EEntityType Type = EEntityType::FOLDER;
+	UPROPERTY(Replicated)
+	int32 Id = 0;
+
+	UFUNCTION( NetMulticast, Reliable)
+	void SetId(int32 NewId);
+
+	UFUNCTION(Server, Reliable)
+	void SetParentFolderClass(const FFolder& Folder);
+	
 	virtual void Tick(float DeltaTime) override;
+
+	UFUNCTION(NetMulticast,Reliable)
+	void SpawnNiagaraEffect(UNiagaraSystem* NiagaraSystem,FLinearColor Color);
+	
 	void OnDie(AController* KilledBy);
 	
 	UFUNCTION(NetMulticast,Reliable)
@@ -58,6 +85,7 @@ public:
 	
 	UFUNCTION(NetMulticast,Reliable)
 	void UpdateEnityName();
+	
 	UFUNCTION(NetMulticast,Reliable)
 	void SetMaterialInstance(UMaterialInstance* MaterialInstance);
 };

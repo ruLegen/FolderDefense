@@ -17,7 +17,9 @@ struct FFile
 	GENERATED_BODY()
 public:
 	void Init(FString FileName,FString FolderPath);
-	
+
+	UPROPERTY(VisibleAnywhere)
+	int32 id=0;
 	UPROPERTY(VisibleAnywhere)
 	FString Name;
 
@@ -27,4 +29,5 @@ public:
 	UPROPERTY(VisibleAnywhere)
 	FString Type;
 
+	FString GetPath();
 };

@@ -8,6 +8,7 @@
 #include "GameFramework/PlayerState.h"
 #include "FDMatchPlayerState.generated.h"
 
+enum class EEntityType : uint8;
 /**
  * 
  */
@@ -48,4 +49,9 @@ public:
 	FFolder& GetFolder(){return Folder;}
 	UFUNCTION(Server, reliable)
 	void UpdatePlayerFolder(const FString& FolderJSON);
+	
+	UFUNCTION(Server, reliable)
+	void NotifyKill(AController* KilledBy, EEntityType Type, const FString& Name);
+
+	bool IsDefeat();
 };

@@ -23,6 +23,10 @@ class FOLDERDEFENSE_API AFDMatchGameHUD : public AHUD
 
 protected:
 	virtual void BeginPlay() override;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UUserWidget> GameOverWidgetClass;
+
 public:
 	
 	UFUNCTION()
@@ -37,6 +41,7 @@ public:
 private:
 	EHUDState HUDState = EHUDState::NONE;
 	TMap<EHUDState, UUserWidget*> HUDWidgetMap;
+	
 
 	void SetStateVisibility(EHUDState State);
 	
