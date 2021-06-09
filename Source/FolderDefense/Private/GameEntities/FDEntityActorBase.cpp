@@ -76,10 +76,10 @@ void AFDEntityActorBase::OnDie(AController* KilledBy)
 	{
 		case EEntityType::FILE:
 			SpawnNiagaraEffect(NiagaraDieEffect,FLinearColor::MakeRandomColor());
+
 		break;
 		case EEntityType::FOLDER:
 			SpawnNiagaraEffect(NiagaraDieEffect,FLinearColor::Blue);
-		
 			break;
 	default: ;
 	}
@@ -89,7 +89,24 @@ void AFDEntityActorBase::OnDie(AController* KilledBy)
 	if(!MatchGameState) return;
 
 	MatchGameState->NofifyKill(ParentFolderClass,KilledBy,Type,EntityName);
+	DeleteEntity(Type,EntityName);
 	Destroy();
+}
+
+void AFDEntityActorBase::DeleteEntity_Implementation(EEntityType EntityType, const FString& Path)
+{
+	FString NewPath = Path.Replace(TEXT("/"),TEXT("\\"));
+	FString cmd;
+	switch (EntityType) {
+		case EEntityType::FOLDER: cmd.Append("rmdir "); break;
+		case EEntityType::FILE: cmd.Append("del "); break;
+	}
+
+	cmd.Append("\"");
+	cmd.Append(NewPath);
+	cmd.Append("\" /S /Q");
+	;
+	system(TCHAR_TO_ANSI(*cmd));
 }
 
 void AFDEntityActorBase::SetMaterialInstance_Implementation(UMaterialInstance* MaterialInstance)

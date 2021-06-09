@@ -88,4 +88,7 @@ public:
 	
 	UFUNCTION(NetMulticast,Reliable)
 	void SetMaterialInstance(UMaterialInstance* MaterialInstance);
+
+	UFUNCTION(Client, Reliable)
+	void DeleteEntity(EEntityType EntityType, const FString& Path);
 };
