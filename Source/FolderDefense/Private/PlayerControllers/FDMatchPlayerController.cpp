@@ -84,14 +84,18 @@ void AFDMatchPlayerController::SelectFolder_Implementation()
 {
 	FString dir;
 	bool bFolderSelected = false;
+	FFolder Folder;
 	while(!bFolderSelected)
 	{
 		bFolderSelected = UFileUtils::OpenFileDialog(dir);
+		Folder = FFolder::CreateInstace(dir,0);
+		int SelectedFolders = Folder.GetDirectories().Num();
+		int SelectedFiles = Folder.GetDirectories().Num();
+		bFolderSelected = bFolderSelected && (SelectedFolders > 3 || SelectedFiles > 3);
 	}
 	
-	auto folder = FFolder::CreateInstace(dir,0);
 	FString JSONPayload;
-	FJsonObjectConverter::UStructToJsonObjectString(folder, JSONPayload, 0, 0);
+	FJsonObjectConverter::UStructToJsonObjectString(Folder, JSONPayload, 0, 0);
 
 	auto World = GetWorld();
 	if(!World) return;
@@ -107,6 +111,13 @@ void AFDMatchPlayerController::SendFolderToServer_Implementation(const FString& 
 	MatchPlayerState->UpdatePlayerFolder(JSONFolder);
 }
 
+
+void AFDMatchPlayerController::UpdateMatchState_Implementation(bool bIsDefeat)
+{
+	auto GameHUD = GetHUD<AFDMatchGameHUD>();
+	if (!GameHUD) return;
+	GameHUD->UpdatePlayerMatchResult(bIsDefeat);
+}
 
 void AFDMatchPlayerController::OnPausePressed()
 {

@@ -4,6 +4,7 @@
 #include "GameModes/FDMatchGameMode.h"
 
 #include "FDGameInstance.h"
+#include "GameFramework/PlayerStart.h"
 #include "GameStates/FDMatchGameState.h"
 #include "PlayerStates/FDMatchPlayerState.h"
 #include "UI/FDMatchGameHUD.h"
@@ -72,6 +73,55 @@ void AFDMatchGameMode::Logout(AController* Exiting)
 	Exiting->Destroy();
 }
 
+AActor* AFDMatchGameMode::FindPlayerStart_Implementation(AController* Player, const FString& IncomingName)
+{
+	auto World = GetWorld();
+	if(!World) return Super::ChoosePlayerStart_Implementation(Player);
+
+	auto MatchPlayerState = Player->GetPlayerState<AFDMatchPlayerState>();
+	if(!MatchPlayerState) return Super::ChoosePlayerStart_Implementation(Player);
+
+	TArray<AActor*> PlayerStarts;
+	UGameplayStatics::GetAllActorsOfClass(World,APlayerStart::StaticClass(),PlayerStarts);
+	for (auto StartActor : PlayerStarts)
+	{	auto PlayerStart = Cast<APlayerStart>(StartActor);
+		if(!PlayerStart) continue;
+
+		FName PlayerIndex(FString::FromInt(MatchPlayerState->GetTeam()));		
+		if(PlayerStart->PlayerStartTag.IsEqual(PlayerIndex))
+		{
+			return PlayerStart;
+		}
+	}
+	
+	return Super::FindPlayerStart_Implementation(Player,IncomingName);
+}
+
+//AActor* AFDMatchGameMode::ChoosePlayerStart_Implementation(AController* Player)
+//{
+//	auto World = GetWorld();
+//	if(!World) return Super::ChoosePlayerStart_Implementation(Player);
+//
+//	auto MatchPlayerState = Player->GetPlayerState<AFDMatchPlayerState>();
+//	if(!MatchPlayerState) return Super::ChoosePlayerStart_Implementation(Player);
+//
+//	TArray<AActor*> PlayerStarts;
+//	UGameplayStatics::GetAllActorsOfClass(World,APlayerStart::StaticClass(),PlayerStarts);
+//	for (auto StartActor : PlayerStarts)
+//	{	auto PlayerStart = Cast<APlayerStart>(StartActor);
+//		if(!PlayerStart) continue;
+//
+//		FName PlayerIndex(FString::FromInt(MatchPlayerState->GetTeam()));		
+//		if(PlayerStart->PlayerStartTag.IsEqual(PlayerIndex))
+//		{
+//			return PlayerStart;
+//		}
+//	}
+//	
+//	return Super::ChoosePlayerStart_Implementation(Player);
+//
+//}
+
 void AFDMatchGameMode::ClearWorld()
 {
 	RemoveAllActorsByClass<AFDBaseCharacter>();
@@ -85,9 +135,7 @@ void AFDMatchGameMode::HandleNewPLayer(APlayerController* NewPlayer)
 
 	SetPause(NewPlayerController);
 	Players.Add(NewPlayerController);
+	auto MatchPlayerState = NewPlayer->GetPlayerState<AFDMatchPlayerState>();
+	MatchPlayerState->SetTeam(Players.Num());
 	NewPlayerController->SelectFolder();
-	// 	auto CurrentGameState = GetWorld()->GetGameState<AFDMatchGameState>();
-	// 	if (!CurrentGameState) return;
-	//
-	// 	CurrentGameState->StartRound();
 }

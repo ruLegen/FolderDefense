@@ -9,12 +9,15 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpectatorPawn.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "GameModes/FDMatchGameMode.h"
+#include "GameStates/FDMatchGameState.h"
 #include "Net/UnrealNetwork.h"
 
 AFDBaseCharacter::AFDBaseCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	bReplicates = true;
+	
 	SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>("SpringArm");
 	SpringArmComponent->SetupAttachment(GetMesh(),TEXT("b_head"));
 	SpringArmComponent->bUsePawnControlRotation = true;
@@ -26,7 +29,7 @@ AFDBaseCharacter::AFDBaseCharacter()
 	
 	HealthComponent = CreateDefaultSubobject<UFDHealthComponent>("Health Commponent");
 	HealthComponent->OnHealthChanged.AddUObject(this, &AFDBaseCharacter::OnHealthChanged);
-
+	GetMovementComponent()->SetIsReplicated(true);
 
 	WeaponComponent = CreateDefaultSubobject<UFDWeaponComponent>("Weapon Commponent");
 
@@ -36,10 +39,12 @@ AFDBaseCharacter::AFDBaseCharacter()
 void AFDBaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	GetMovementComponent()->SetIsReplicated(true);
 	SetReplicateMovement(true);
 	if(HasAuthority())
 		HealthComponent->OnDeath.AddUObject(this, &AFDBaseCharacter::OnDeath);
-	DefaultSpeed = GetMovementComponent()->GetMaxSpeed();
+	UCharacterMovementComponent *MovementComponent = GetCharacterMovement();
+	DefaultSpeed =MovementComponent->MaxWalkSpeed;
 }
 
 void AFDBaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -51,6 +56,8 @@ void AFDBaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME(AFDBaseCharacter, IsWantToRun);
 	DOREPLIFETIME(AFDBaseCharacter, MaxRunSpeed);
 	DOREPLIFETIME(AFDBaseCharacter, DefaultSpeed);
+	DOREPLIFETIME(AFDBaseCharacter,ImpulseMultiplier);
+	
 }
 
 void AFDBaseCharacter::Tick(float DeltaTime)
@@ -94,18 +101,22 @@ void AFDBaseCharacter::MoveRight(float Input)
 }
 void AFDBaseCharacter::StartRun_Implementation()
 {
+	UCharacterMovementComponent *MovementComponent = GetCharacterMovement();
+	MovementComponent->AddImpulse(GetActorForwardVector() * ImpulseMultiplier, false);
+	MaxRunSpeed = 3000;
+	On_SpeedChanged();
 	IsWantToRun = true;
 	if (IsRunning())
 	{
-		UCharacterMovementComponent *MovementComponent = GetCharacterMovement();
-		MovementComponent->MaxWalkSpeed = MaxRunSpeed;
-		MovementComponent->AddImpulse(GetActorForwardVector() * ImpulseMultiplier, false);
+	
 	}
 }
 void AFDBaseCharacter::StopRun_Implementation()
 {
 	GetCharacterMovement()->MaxWalkSpeed = DefaultSpeed;
 	IsWantToRun = false;
+	MaxRunSpeed = DefaultSpeed;
+	On_SpeedChanged();
 }
 
 void AFDBaseCharacter::OnHealthChanged(float health)
@@ -116,6 +127,14 @@ void AFDBaseCharacter::OnHealthChanged(float health)
 bool AFDBaseCharacter::IsRunning()
 {
 	return IsWantToRun && IsMovingForward && GetVelocity().Size() > 0;
+}
+
+void AFDBaseCharacter::On_SpeedChanged()
+{
+	UCharacterMovementComponent *MovementComponent = GetCharacterMovement();
+	MovementComponent->MaxWalkSpeed = MaxRunSpeed;
+	UE_LOG(LogTemp,Warning,TEXT("set new speed %f"),MaxRunSpeed);
+	
 }
 
 float AFDBaseCharacter::GetMovementDirection() const
@@ -168,5 +187,13 @@ void AFDBaseCharacter::Kill_Implementation()
 		Spectator->TeleportTo(GetActorLocation(), GetActorRotation(), false, true);
 		PlayerController->Possess(Spectator);
 	}
+	auto world = GetWorld();
+	if (!world) return;
+
+	auto MatchGameState = world->GetGameState<AFDMatchGameState>();
+	if (!MatchGameState) return;
+
+	MatchGameState->RespawnPlayer(PlayerController);
+	
 }
 

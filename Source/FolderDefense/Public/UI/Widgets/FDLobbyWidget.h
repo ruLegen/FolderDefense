@@ -26,7 +26,8 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	UButton* StartGameButton;
-
+	UPROPERTY(meta = (BindWidget))
+	UButton* ExitButton;
 	UPROPERTY(meta = (BindWidget))
 	UScrollBox *PlayerScrollBox;
 
@@ -42,6 +43,8 @@ protected:
 	public:
 	UFUNCTION()
 	void StartGame();
+	UFUNCTION()
+	void StopGame();
 	void UpdatePlayers(TArray<FString> Players);
 	void SetButtonVisibility(bool Visible);	
 };

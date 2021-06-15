@@ -33,6 +33,9 @@ protected:
 	int ReadyPlayerCount = 0;
 	UPROPERTY()
 	float DelayOnEmpty = 1;	// Seconds; Delay for next round if All players has no bullets
+
+	UPROPERTY(EditDefaultsOnly)
+	float RespawnDelay = 2;			// Seconds; Delay before Player Respawn
 	
 	UPROPERTY()
 	float DelayAfterDeath = 0.2;	// Seconds; Delay before EndRound
@@ -47,6 +50,9 @@ protected:
 	int32 EmptyPlayersCount= 0;		// Count how many players has no ammo
 
 	FTimerHandle Timer;
+
+
+	FTimerHandle RespawnTimer;
 	UPROPERTY(EditDefaultsOnly)
 	int MinReadyPlayerCount = 2;
 
@@ -94,4 +100,7 @@ public:
 
 	UFUNCTION(Server, Reliable)
 	void UpdateRoundStart();
+	
+	UFUNCTION(Server, Reliable)
+	void RespawnPlayer(APlayerController* PlayerController);
 };

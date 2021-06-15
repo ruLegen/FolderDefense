@@ -10,6 +10,7 @@
 void AFDMatchPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AFDMatchPlayerState, bIsDefeat);
 	DOREPLIFETIME(AFDMatchPlayerState, Kills);
 	DOREPLIFETIME(AFDMatchPlayerState, Deaths);
 	DOREPLIFETIME(AFDMatchPlayerState, Folder);
@@ -23,6 +24,11 @@ void AFDMatchPlayerState::On_FolderChanges()
 bool AFDMatchPlayerState::IsDefeat()
 {
 	return  Folder.GetFiles().Num() == 0 && Folder.GetDirectories().Num() == 0;
+}
+
+void AFDMatchPlayerState::SetTeam_Implementation(uint32 NewTeam)
+{
+	Team = NewTeam;
 }
 
 void AFDMatchPlayerState::NotifyKill_Implementation(AController* KilledBy, EEntityType Type, const FString& Name)

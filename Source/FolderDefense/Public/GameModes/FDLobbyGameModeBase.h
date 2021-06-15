@@ -32,5 +32,5 @@ class FOLDERDEFENSE_API AFDLobbyGameModeBase : public AGameModeBase
 
 	int32 GetNumOfConnectedPlayers() { return Players.Num(); }
 	int32 GetMaxPlayers () { return MaxPlayer; }
-	
+	void FinishGame();
 };

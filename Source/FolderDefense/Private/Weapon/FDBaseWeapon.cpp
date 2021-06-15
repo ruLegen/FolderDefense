@@ -7,6 +7,7 @@
 #include "GameFramework/Controller.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 
 AFDBaseWeapon::AFDBaseWeapon()
@@ -51,10 +52,11 @@ void AFDBaseWeapon::BeginPlay()
 	Super::BeginPlay();
 }
 
-UNiagaraComponent* AFDBaseWeapon::SpawnMuzzleFX()
+UParticleSystemComponent* AFDBaseWeapon::SpawnMuzzleFX()
 {
-	return UNiagaraFunctionLibrary::SpawnSystemAttached(MuzzleFX, WeaponMesh, MuzzleSocketName, FVector::ZeroVector,
-												FRotator::ZeroRotator, EAttachLocation::SnapToTarget, true);
+	return UGameplayStatics::SpawnEmitterAttached(MuzzleFX,WeaponMesh,MuzzleSocketName,FVector::ZeroVector,FRotator::ZeroRotator, EAttachLocation::SnapToTarget);
+	//return UNiagaraFunctionLibrary::SpawnSystemAttached(MuzzleFX, WeaponMesh, MuzzleSocketName, FVector::ZeroVector,
+	//											FRotator::ZeroRotator, EAttachLocation::SnapToTarget, true);
 
 }
 

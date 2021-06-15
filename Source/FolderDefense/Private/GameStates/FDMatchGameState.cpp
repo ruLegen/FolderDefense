@@ -5,6 +5,7 @@
 
 #include "GameModes/FDMatchGameMode.h"
 #include "Net/UnrealNetwork.h"
+#include "PlayerStarts/FDPlayerStart.h"
 #include "PlayerStates/FDMatchPlayerState.h"
 #include "World/FDRoomHandler.h"
 
@@ -29,6 +30,23 @@ void AFDMatchGameState::OnRep_GameOver()
 {
 	if(bIsGameOver)
 		OnGameOver.Broadcast();
+}
+
+void AFDMatchGameState::RespawnPlayer_Implementation(APlayerController*  PlayerController)
+{
+	if(!PlayerController) return;
+
+	auto MatchWorld = GetWorld();
+	if(!MatchWorld) return;
+
+	auto MatchGameMode = MatchWorld->GetAuthGameMode<AFDMatchGameMode>();
+	if(!MatchGameMode) return;
+	
+	MatchWorld->GetTimerManager().SetTimer(RespawnTimer,[PlayerController,MatchGameMode]()
+	{
+		PlayerController->UnPossess();
+		MatchGameMode->RestartPlayer(PlayerController);
+	},RespawnDelay,false);
 }
 
 /*
@@ -57,9 +75,11 @@ void AFDMatchGameState::NofifyKill_Implementation(const FFolder& Folder, AContro
 	{
 		if(!Player) return;
 
-		auto PlayersGameState = Player->GetPlayerState<AFDMatchPlayerState>();
-		if(!PlayersGameState) return;
-		if(PlayersGameState->IsDefeat())
+		auto MatchPlayerState = Player->GetPlayerState<AFDMatchPlayerState>();
+		if(!MatchPlayerState) return;
+		Player->UpdateMatchState(MatchPlayerState->IsDefeat());
+
+		if(MatchPlayerState->IsDefeat())
 		{
 			bIsGameOver = true;
 			OnGameOver.Broadcast();
@@ -172,17 +192,48 @@ void AFDMatchGameState::SpawnRooms_Implementation()
 {
 	auto World = GetWorld();
 	if(!World) return;
-
+	TArray<AActor*> PlayerStarts;
+	UGameplayStatics::GetAllActorsOfClass(World,APlayerStart::StaticClass(),PlayerStarts);
+	
 	int i = 0;
 	for (auto PlayerState : PlayerArray)
 	{
 		auto MatchPlayerState = Cast<AFDMatchPlayerState>(PlayerState);
 		if(!MatchPlayerState) continue;
 		check(RoomClass);
-		auto Room = World->SpawnActorDeferred<AProcedureRoom>(RoomClass,FTransform(FVector(i*900,0,0)),MatchPlayerState->GetOwner());
+		FTransform RoomTransform;
+		for (auto PlayerStart : PlayerStarts)
+		{
+			auto StartPosition = Cast<APlayerStart>(PlayerStart);
+			if(!PlayerStart) continue;
+
+			FName PlayerIndex(FString::FromInt(MatchPlayerState->GetTeam()));		
+			if(StartPosition->PlayerStartTag.IsEqual(PlayerIndex))
+			{
+				RoomTransform = StartPosition->GetTransform();
+			}
+		}
+		
+		auto RoomLocation = RoomTransform.GetLocation();
+		RoomLocation.Z = 10;
+		RoomLocation -= RoomTransform.GetRotation().Vector() * 900;
+		RoomTransform.SetLocation(RoomLocation);
+		
+		auto RoomRotation = RoomTransform.GetRotation().Rotator();
+		RoomRotation.Add(0,90,0);
+
+		RoomTransform.SetRotation(RoomRotation.Quaternion());
+		auto Room = World->SpawnActorDeferred<AProcedureRoom>(RoomClass,RoomTransform,MatchPlayerState->GetOwner());
 		Room->Setup(4,1);
 		Room->InitFolder(MatchPlayerState->GetFolder());
-		Room->FinishSpawning(FTransform(FVector(i*1600,0,0)));
+		Room->FinishSpawning(RoomTransform,true);
 		i++;
 	}
+	
+	if(!GetWorld()) return;
+
+	auto gameMode = GetWorld()->GetAuthGameMode<AFDMatchGameMode>();
+	if(!gameMode) return;
+	
+	gameMode->RestartRound(0);
 }

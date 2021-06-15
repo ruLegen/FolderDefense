@@ -20,13 +20,21 @@ protected:
 	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const override;
 
 	UPROPERTY(Replicated)
+	uint32 Team =-1;
+	
+	UPROPERTY(Replicated)
 	uint32 Deaths;
 
 	UPROPERTY(Replicated)
 	uint32 Kills;
 
+	UPROPERTY(Replicated)
+	bool bIsDefeat;
+	
 	UPROPERTY(ReplicatedUsing=On_FolderChanges)
 	FFolder Folder;
+
+	
 public:	
 	UFUNCTION(Server, reliable)
 	void AddKill(int Num);
@@ -54,4 +62,8 @@ public:
 	void NotifyKill(AController* KilledBy, EEntityType Type, const FString& Name);
 
 	bool IsDefeat();
+	
+	UFUNCTION(Server, reliable)
+	void SetTeam(uint32 WewTeam);
+	int32 GetTeam() { return Team;};
 };

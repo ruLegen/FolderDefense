@@ -3,6 +3,7 @@
 
 #include "GameModes/FDLobbyGameModeBase.h"
 
+#include "FDGameInstance.h"
 #include "GameStates/FDLobbyGameStateBase.h"
 #include "PlayerControllers/FDLobbyPlayerController.h"
 #include "UI/FDLobbyHUD.h"
@@ -54,4 +55,23 @@ void AFDLobbyGameModeBase::Logout(AController* Exiting)
 	AFDLobbyPlayerController* Controller = Cast<AFDLobbyPlayerController>(Exiting);
 	if (!Controller) return;
 	Players.Remove(Controller);
+
+	auto LobbyGameState = GetWorld()->GetGameState<AFDLobbyGameStateBase>();
+	if (!LobbyGameState) return;
+	LobbyGameState->RemovePlayer(Controller->GetName());
+}
+
+void AFDLobbyGameModeBase::FinishGame()
+{
+	for (auto Player : Players)
+	{
+		Player->Disconnect();			// Tell all clients to disconnect
+	}
+	// if we are lsiten server. Disconnect local player controller
+	auto GameInstance = GetGameInstance<UFDGameInstance>();
+	if (GameInstance)
+	{
+		GameInstance->DestroySession();
+	}
+	GetWorld()->ServerTravel(UFDGameInstance::MainMenuLevel, true, true);
 }

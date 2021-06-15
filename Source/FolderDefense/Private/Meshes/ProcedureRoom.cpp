@@ -3,6 +3,7 @@
 
 #include "Meshes/ProcedureRoom.h"
 
+#include "DrawDebugHelpers.h"
 #include "GameEntities/FDFolderActor.h"
 #include "Net/UnrealNetwork.h"
 
@@ -14,7 +15,10 @@ AProcedureRoom::AProcedureRoom()
 	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
 	WallInstanceHolder = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("Wall"));
+	WallInstanceHolder->SetIsReplicated(true);
+
 	FloorInstanceHolder = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("Floor"));
+	FloorInstanceHolder->SetIsReplicated(true);
 	RootComponent = WallInstanceHolder;
 	FloorInstanceHolder->AttachToComponent(RootComponent,FAttachmentTransformRules::KeepRelativeTransform);
 }
@@ -43,7 +47,8 @@ void AProcedureRoom::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	DOREPLIFETIME(AProcedureRoom, Folders);
 	DOREPLIFETIME(AProcedureRoom, Files);
 	DOREPLIFETIME(AProcedureRoom, Folder);
-	
+	DOREPLIFETIME(AProcedureRoom, WallInstanceHolder);
+	DOREPLIFETIME(AProcedureRoom, FloorInstanceHolder);
 	
 }
 
@@ -58,55 +63,190 @@ void AProcedureRoom::GenerateRoom_Implementation()
 	if(!WallStaticMesh || !FloorStaticMesh || !WallInstanceHolder )
 		return;
 	auto WallSize = WallStaticMesh->GetBounds().BoxExtent;
-	int  RotationDeg = 0;
-	FVector LastLocation;
-	WallInstanceHolder->ClearInstances();
-	for (int h = 1; h <= WallHeight; h++)	/// Generates Height Walls
-	{
-		for (int i = 0; i <= 2; i++)		// Rotate Wall Generator
-		{
-			for (int j = 0; j < WallCount; j++)	// Walls
-			{
-				float YOffset = WallSize.Y *2 * j;
-				auto DirectionVector = FVector(0,YOffset,0).RotateAngleAxis(RotationDeg,FVector::ZAxisVector);
-			
-				FTransform NewTransform;
-				NewTransform.SetLocation(DirectionVector+LastLocation);
-				FRotator Rotator = FRotator::MakeFromEuler(FVector(0,0,RotationDeg));
-				//Rotator.Yaw = RotationDeg;
-				NewTransform.SetRotation(Rotator.Quaternion());
-				WallInstanceHolder->AddInstance(NewTransform);
-			}
-			FTransform LastInstanceTransform;
-			float YOffset = WallSize.Y *2 ;
-
-			auto DirectionVector = FVector(0,YOffset,0).RotateAngleAxis(RotationDeg,FVector::ZAxisVector);
-			WallInstanceHolder->GetInstanceTransform(WallInstanceHolder->GetInstanceCount()-1,LastInstanceTransform);
-			LastLocation = LastInstanceTransform.GetLocation() + DirectionVector;
-			RotationDeg = (i+1) * 90;
-		}
-		float ZOffset = WallSize.Z * 2*h;
-		LastLocation = FVector(0,0,ZOffset);
-	}
-	
 	FloorInstanceHolder->ClearInstances();
 	auto FloorSize = FloorStaticMesh->GetBounds().BoxExtent;
+	
 	FloorSize = FloorSize*2;
 	int FloorXCount = FMath::CeilToInt(WallSize.Y*2*WallCount*1.0 / FloorSize.X);
 	int FloorYCount = FMath::CeilToInt(WallSize.Y*2*WallCount*1.0 / FloorSize.Y);
+	LocalPivotPoint = FVector(FloorXCount*FloorSize.X/2,-FloorYCount*FloorSize.Y/2,0);
 	for (int i = 0; i < FloorXCount; ++i)
 	{
 		for (int j = 0; j < FloorYCount; ++j)
 		{
 			FTransform NewTransform;
 			FVector NewLocation = FVector(-FloorSize.X*i,FloorSize.Y*j,0);
-			NewTransform.SetLocation(NewLocation);
+			NewTransform.SetLocation(NewLocation + LocalPivotPoint);
 			FloorInstanceHolder->AddInstance(NewTransform);
 		}
 	}
+
+
+
+
+	
+
+	WallInstanceHolder->ClearInstances();
+	for (int h = 0; h < WallHeight; h++)
+	{
+		int  RotationDeg = 0;
+		float ZOffset = WallSize.Z * 2*h;
+		FVector LastLocation = LocalPivotPoint;
+		LastLocation = LocalPivotPoint;
+		LastLocation.Z = ZOffset;
+		for (int i = 0; i <= 2; i++)		// Rotate Wall Generator
+			{
+			for (int j = 0; j < WallCount; j++)	// Walls
+				{
+				float YOffset = WallSize.Y *2 * j;
+				auto DirectionVector = FVector(0,YOffset,0).RotateAngleAxis(RotationDeg,FVector::ZAxisVector);
+	
+				FTransform NewTransform;
+				NewTransform.SetLocation(DirectionVector+LastLocation );
+				FRotator Rotator = FRotator::MakeFromEuler(FVector(0,0,RotationDeg));
+
+				NewTransform.SetRotation(Rotator.Quaternion());
+				WallInstanceHolder->AddInstance(NewTransform);
+				}
+			FTransform LastInstanceTransform;
+			float YOffset = WallSize.Y * 2 ;
+			auto DirectionVector = FVector(0,YOffset,0).RotateAngleAxis(RotationDeg,FVector::ZAxisVector);
+	
+			WallInstanceHolder->GetInstanceTransform(WallInstanceHolder->GetInstanceCount()-1,LastInstanceTransform);
+	
+			LastLocation = LastInstanceTransform.GetLocation() + DirectionVector;
+			RotationDeg = (i+1) * 90;
+			}
+		
+		
+	}
+			//FTransform LastInstanceTransform;
+			//float YOffset = WallSize.Y * 2 ;
+//
+			//auto DirectionVector = FVector(0,YOffset,0).RotateAngleAxis(RotationDeg,FVector::ZAxisVector);
+			//
+			//WallInstanceHolder->GetInstanceTransform(WallInstanceHolder->GetInstanceCount()-1,LastInstanceTransform);
+			//
+			//LastLocation = LastInstanceTransform.GetLocation() + DirectionVector;
+			//RotationDeg = (i+1) * 90;
+	
+	
 	
 }
+// void AProcedureRoom::GenerateRoom_Implementation()
+// {
+// 	if(!WallStaticMesh || !FloorStaticMesh || !WallInstanceHolder )
+// 		return;
+// 	auto WallSize = WallStaticMesh->GetBounds().BoxExtent;
+// 	int  RotationDeg = 0;
+// 	FVector LastLocation;
+// 	WallInstanceHolder->ClearInstances();
+// 	for (int h = 0; h < WallHeight; h++)	/// Generates Height Walls
+// 	{
+// 		for (int i = 0; i <= 3; i++)		// Rotate Wall Generator
+// 		{
+// 			for (int j = 0; j < WallCount; j++)	// Walls
+// 			{
+// 				float YOffset = WallSize.Y *2 * j;
+// 				auto DirectionVector = FVector(0,YOffset,0).RotateAngleAxis(RotationDeg,FVector::ZAxisVector);
+// 			
+// 				FTransform NewTransform;
+// 				NewTransform.SetLocation(DirectionVector+LastLocation);
+// 				FRotator Rotator = FRotator::MakeFromEuler(FVector(0,0,RotationDeg));
+//
+// 				NewTransform.SetRotation(Rotator.Quaternion());
+// 				WallInstanceHolder->AddInstance(NewTransform);
+// 			}
+//
+// 			FTransform LastInstanceTransform;
+// 			float YOffset = WallSize.Y * 2 ;
+//
+// 			auto DirectionVector = FVector(0,YOffset,0).RotateAngleAxis(RotationDeg,FVector::ZAxisVector);
+// 			
+// 			WallInstanceHolder->GetInstanceTransform(WallInstanceHolder->GetInstanceCount()-1,LastInstanceTransform);
+// 			
+// 			LastLocation = LastInstanceTransform.GetLocation() + DirectionVector;
+// 			RotationDeg = (i+1) * 90;
+// 		}
+// 		float ZOffset = WallSize.Z * 2*h;
+// 		LastLocation = FVector(0,0,ZOffset);
+// 	}
+// 	
+// 	FloorInstanceHolder->ClearInstances();
+// 	auto FloorSize = FloorStaticMesh->GetBounds().BoxExtent;
+// 	FloorSize = FloorSize*2;
+// 	int FloorXCount = FMath::CeilToInt(WallSize.Y*2*WallCount*1.0 / FloorSize.X);
+// 	int FloorYCount = FMath::CeilToInt(WallSize.Y*2*WallCount*1.0 / FloorSize.Y);
+// 	for (int i = 0; i < FloorXCount; ++i)
+// 	{
+// 		for (int j = 0; j < FloorYCount; ++j)
+// 		{
+// 			FTransform NewTransform;
+// 			FVector NewLocation = FVector(-FloorSize.X*i,FloorSize.Y*j,0);
+// 			NewTransform.SetLocation(NewLocation);
+// 			FloorInstanceHolder->AddInstance(NewTransform);
+// 		}
+// 	}
+// 	
+// }
 
+ 
+// void AProcedureRoom::GenerateRoom_Implementation()
+// {
+// 	if(!WallStaticMesh || !FloorStaticMesh || !WallInstanceHolder )
+// 		return;
+// 	auto WallSize = WallStaticMesh->GetBounds().BoxExtent;
+// 	int  RotationDeg = 0;
+// 	FVector LastLocation;
+// 	WallInstanceHolder->ClearInstances();
+// 	for (int h = 0; h < WallHeight; h++)	/// Generates Height Walls
+// 	{
+// 		for (int i = 0; i <= 3; i++)		// Rotate Wall Generator
+// 		{
+// 			for (int j = 0; j < WallCount; j++)	// Walls
+// 			{
+// 				float YOffset = WallSize.Y *2 * j;
+// 				auto DirectionVector = FVector(0,YOffset,0).RotateAngleAxis(RotationDeg,FVector::ZAxisVector);
+// 			
+// 				FTransform NewTransform;
+// 				NewTransform.SetLocation(DirectionVector+LastLocation);
+// 				FRotator Rotator = FRotator::MakeFromEuler(FVector(0,0,RotationDeg));
+//
+// 				NewTransform.SetRotation(Rotator.Quaternion());
+// 				WallInstanceHolder->AddInstance(NewTransform);
+// 			}
+//
+// 			FTransform LastInstanceTransform;
+// 			float YOffset = WallSize.Y * 2 ;
+//
+// 			auto DirectionVector = FVector(0,YOffset,0).RotateAngleAxis(RotationDeg,FVector::ZAxisVector);
+// 			
+// 			WallInstanceHolder->GetInstanceTransform(WallInstanceHolder->GetInstanceCount()-1,LastInstanceTransform);
+// 			
+// 			LastLocation = LastInstanceTransform.GetLocation() + DirectionVector;
+// 			RotationDeg = (i+1) * 90;
+// 		}
+// 		float ZOffset = WallSize.Z * 2*h;
+// 		LastLocation = FVector(0,0,ZOffset);
+// 	}
+// 	
+// 	FloorInstanceHolder->ClearInstances();
+// 	auto FloorSize = FloorStaticMesh->GetBounds().BoxExtent;
+// 	FloorSize = FloorSize*2;
+// 	int FloorXCount = FMath::CeilToInt(WallSize.Y*2*WallCount*1.0 / FloorSize.X);
+// 	int FloorYCount = FMath::CeilToInt(WallSize.Y*2*WallCount*1.0 / FloorSize.Y);
+// 	for (int i = 0; i < FloorXCount; ++i)
+// 	{
+// 		for (int j = 0; j < FloorYCount; ++j)
+// 		{
+// 			FTransform NewTransform;
+// 			FVector NewLocation = FVector(-FloorSize.X*i,FloorSize.Y*j,0);
+// 			NewTransform.SetLocation(NewLocation);
+// 			FloorInstanceHolder->AddInstance(NewTransform);
+// 		}
+// 	}
+// 	
+// }
 
 void AProcedureRoom::Setup_Implementation(int _WallCount, int _RoomHeight)
 {
@@ -129,16 +269,18 @@ void AProcedureRoom::GetCenter(FVector& Output)
 		return;
 	auto WallSize = WallStaticMesh->GetBounds().BoxExtent;
 	auto Location = GetActorLocation();
-	Output = FVector(Location.X-(WallSize.Y*WallCount),Location.Y +(WallSize.Y*WallCount),Location.Z+(WallSize.Z*WallHeight));
+	
+	FVector(Location.X-(WallSize.Y*WallCount),Location.Y +(WallSize.Y*WallCount),Location.Z+(WallSize.Z*WallHeight));
+	Output = LocalPivotPoint;
 }
 
 FVector AProcedureRoom::GetRandomPointInside()
 {
 	if(!WallStaticMesh || !FloorStaticMesh)
 		return GetActorLocation();
-	auto WallSize = WallStaticMesh->GetBounds().BoxExtent;
+	auto WallSize = FloorStaticMesh->GetBounds().BoxExtent;
 	auto Location = GetActorLocation();
-	return  FVector(Location.X-FMath::RandRange(0,(WallSize.Y*WallCount*2.0)),Location.Y +FMath::RandRange(0,(WallSize.Y*WallCount*2.0)),Location.Z);
+	return  FVector(Location.X+FMath::RandRange(-(float)(WallSize.X*WallCount*1.0),WallSize.X*WallCount*1.0),Location.Y + FMath::RandRange(-(float)(WallSize.Y*WallCount*1.0),WallSize.Y*WallCount*1.0),Location.Z);;
 }
 
 EFileType AProcedureRoom::GetFileType(const FString& type)
@@ -167,14 +309,16 @@ void AProcedureRoom::GenerateFolders_Implementation()
 		check(FolderClass);
 		for (auto Directory : Folder.GetDirectories())
 		{
-			FVector FolderLocation = GetRandomPointInside();
-			auto CreatedFolder = World->SpawnActorDeferred<AFDEntityActorBase>(FolderClass,FTransform(FolderLocation),GetOwner());
+			FTransform FolderTransform;
+			FolderTransform.SetLocation(GetRandomPointInside());
+			FolderTransform.SetRotation(GetActorRotation().Quaternion());
+			auto CreatedFolder = World->SpawnActorDeferred<AFDEntityActorBase>(FolderClass,FolderTransform,GetOwner());
 			FString Name = Folder.GetPath()+Directory;
 			CreatedFolder->SetEntityName(Name);
 			CreatedFolder->SetId(Id);
 			CreatedFolder->Type = EEntityType::FOLDER;
 			CreatedFolder->SetParentFolderClass(Folder);
-			CreatedFolder->FinishSpawning(FTransform(FolderLocation));
+			CreatedFolder->FinishSpawning(FolderTransform);
 			if(FolderMaterials.Num() > 0)
 				CreatedFolder->SetMaterialInstance(FolderMaterials[FMath::RandRange(0,FolderMaterials.Num()-1)]);
 			Folders.Push(CreatedFolder);
@@ -194,12 +338,15 @@ void AProcedureRoom::GenerateFiles_Implementation()
 		check(FileClass);
 		for (auto File : Folder.GetFiles())
 		{
-			FVector FileLocation = GetRandomPointInside();
-			auto CreatedFile = World->SpawnActorDeferred<AFDEntityActorBase>(FileClass,FTransform(FileLocation),GetOwner());
+			FTransform FileTransform;
+			FileTransform.SetLocation(GetRandomPointInside());
+			FileTransform.SetRotation(GetActorRotation().Quaternion());
+			
+			auto CreatedFile = World->SpawnActorDeferred<AFDEntityActorBase>(FileClass,FTransform(FileTransform),GetOwner());
 			FString Name = Folder.GetPath()+File.Name;
 			CreatedFile->SetEntityName(Name);
 			CreatedFile->Type = EEntityType::FILE;
-			CreatedFile->FinishSpawning(FTransform(FileLocation));
+			CreatedFile->FinishSpawning(FTransform(FileTransform));
 			CreatedFile->SetParentFolderClass(Folder);
 
 			UMaterialInstance* MaterialInstance;

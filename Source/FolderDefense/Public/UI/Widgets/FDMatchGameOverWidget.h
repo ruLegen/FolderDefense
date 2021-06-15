@@ -8,6 +8,7 @@
 
 #include "FDMatchGameOverWidget.generated.h"
 
+class UTextBlock;
 /**
  * 
  */
@@ -16,9 +17,15 @@ class FOLDERDEFENSE_API UFDMatchGameOverWidget : public UUserWidget
 {
 	GENERATED_BODY()
 public:
-	UPROPERTY(meta = (BindWidget))
-	UButton* RestartButton;
+
 
 	UPROPERTY(meta = (BindWidget))
 	UButton* ExitButton;
+	
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* GameResultInfo;
+
+
+	public:
+	void SetText(FString Text);
 };

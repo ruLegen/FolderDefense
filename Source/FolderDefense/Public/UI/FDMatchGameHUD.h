@@ -6,6 +6,7 @@
 #include "GameFramework/HUD.h"
 #include "FDMatchGameHUD.generated.h"
 
+class UFDMatchGameOverWidget;
 UENUM(BlueprintType)
 enum class EHUDState :uint8
 {
@@ -27,10 +28,12 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UUserWidget> GameOverWidgetClass;
 
+	UPROPERTY()
+	UFDMatchGameOverWidget* GameOverWidget;
 public:
 	
-	UFUNCTION()
-	void UpdatePlayerInfo();
+	//UFUNCTION(Client,Reliable)
+	void UpdatePlayerMatchResult(bool bIsDefeat);
 	
 	UFUNCTION()
 	void SetState(EHUDState State);
@@ -45,12 +48,8 @@ private:
 
 	void SetStateVisibility(EHUDState State);
 	
-	UFUNCTION()
-	void OnMainMenuClicked();
+
 	
 	UFUNCTION()
-	void OnBackClicked();
-	
-	UFUNCTION()
-	void OnRestartMatchClicked();
+	void OnExitButtonPressed();
 };

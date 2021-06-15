@@ -34,11 +34,11 @@ protected:
 	UPROPERTY(VisibleAnywhere, Replicated, BlueprintReadWrite, Category = "Animation")
 	UFDWeaponComponent* WeaponComponent;
 	
-	UPROPERTY(EditAnywhere, Replicated, BlueprintReadWrite, Category = "Custom Movement")
+	UPROPERTY(EditAnywhere, ReplicatedUsing=On_SpeedChanged, BlueprintReadWrite, Category = " Movement")
 	float MaxRunSpeed;
 
 	UPROPERTY(VisibleAnywhere, Replicated, BlueprintReadOnly, Category = "Custom Movement")
-	float DefaultSpeed;
+	float DefaultSpeed = 500;
 
 	UPROPERTY(EditAnywhere, Replicated, BlueprintReadWrite, Category = "Custom Movement")
 	float ImpulseMultiplier;
@@ -46,6 +46,7 @@ protected:
 	UPROPERTY(EditAnywhere, Replicated, BlueprintReadWrite, Category = "Custom Movement")
 	bool IsWantToRun;
 
+	
 	UPROPERTY(Replicated)
 	FRotator AimRotator;
 	
@@ -56,7 +57,8 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	bool IsRunning();
-	
+	UFUNCTION()
+	void On_SpeedChanged();
 	// Return angle between ForwardVector and VelocityVector
 	UFUNCTION(BlueprintCallable)
 	float GetMovementDirection() const;
@@ -76,6 +78,7 @@ public:
 	
 	UFUNCTION(Server,Reliable)
 	void StopRun();
+	
 	UFUNCTION(NetMulticast,Reliable)
 	void Kill();
 	void OnDeath();

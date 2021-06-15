@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "UObject/NoExportTypes.h"
-#include "EditorDirectories.h"
 #include "DesktopPlatformModule.h"
 #include "Misc/MessageDialog.h"
 #include "Runtime/Core/Public/HAL/FileManagerGeneric.h"

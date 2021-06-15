@@ -41,7 +41,7 @@ protected:
 	//virtual void HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer) override;
 
 	//virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
-	//virtual AActor* FindPlayerStart_Implementation(AController* Player, const FString& IncomingName) override;
+	virtual AActor* FindPlayerStart_Implementation(AController* Player, const FString& IncomingName) override;
 	// Delete Unpossessed Pawn and Its guns
 	UFUNCTION()
 	void ClearWorld();

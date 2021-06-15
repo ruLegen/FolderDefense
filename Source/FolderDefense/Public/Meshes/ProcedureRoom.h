@@ -40,9 +40,9 @@ protected:
 	virtual void OnConstruction(const FTransform & Transform) override;
 	
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly,Replicated)
 	UInstancedStaticMeshComponent* WallInstanceHolder;
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly,Replicated)
 	UInstancedStaticMeshComponent* FloorInstanceHolder;
 
 	UPROPERTY(EditAnywhere)
@@ -76,7 +76,9 @@ protected:
 
 	UPROPERTY(EditAnywhere)
 	UMaterialInstance* DefaultFileMaterial;									// Default File Material
-	
+
+	UPROPERTY(EditAnywhere)
+	FVector LocalPivotPoint;		
 	
 public:	
 	// Called every frame

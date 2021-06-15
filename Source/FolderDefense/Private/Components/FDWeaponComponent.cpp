@@ -13,8 +13,9 @@
 
 UFDWeaponComponent::UFDWeaponComponent()
 {
+
 	PrimaryComponentTick.bCanEverTick = false;
-	SetIsReplicated(true);
+	
 }
 
 void UFDWeaponComponent::StartFire()
@@ -77,6 +78,7 @@ bool UFDWeaponComponent::TryAddAmmo(TSubclassOf<AFDBaseWeapon> WeaponType, int32
 void UFDWeaponComponent::BeginPlay()
 {
 	Super::BeginPlay();
+	SetIsReplicated(true);
 	SpawnWeapons();
 	EquipWeapon(CurrentWeaponIndex);
 	InitAnimations();

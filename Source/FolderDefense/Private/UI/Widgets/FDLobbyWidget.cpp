@@ -3,9 +3,12 @@
 
 #include "UI/Widgets/FDLobbyWidget.h"
 
+#include "FDGameInstance.h"
 #include "Components/Button.h"
 #include "Components/ScrollBox.h"
 #include "Components/TextBlock.h"
+#include "GameModes/FDLobbyGameModeBase.h"
+#include "Kismet/GameplayStatics.h"
 
 void UFDLobbyWidget::NativeOnInitialized() 
 {
@@ -18,6 +21,9 @@ void UFDLobbyWidget::NativeOnInitialized()
 			StartGameButton->SetVisibility(ESlateVisibility::Hidden);
 		}
 	}
+	if (ExitButton) {
+			ExitButton->OnClicked.AddDynamic(this, &UFDLobbyWidget::StopGame);
+	}
 }
 
 void UFDLobbyWidget::StartGame()
@@ -29,7 +35,21 @@ void UFDLobbyWidget::StartGame()
 		ViewportClient->RemoveAllViewportWidgets();
 	}
 }
-
+void UFDLobbyWidget::StopGame()
+{
+	auto GameMode = GetWorld()->GetAuthGameMode<AFDLobbyGameModeBase>();
+	if (GameMode)
+	{
+		GameMode->FinishGame();
+	}else
+	{
+		auto world = GetWorld();
+		if(!world) return;
+		UGameplayStatics::OpenLevel(world,FName(UFDGameInstance::MainMenuLevel));
+	}
+	
+	
+}
 void UFDLobbyWidget::UpdatePlayers(TArray<FString> Players)
 {
 	

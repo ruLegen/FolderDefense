@@ -40,6 +40,7 @@ FFolder FFolder::CreateInstace(FString FPath, int DepthLimit)
 
 bool FFolder::InitializeDirectories()
 {
+	int MaxFolders = 20;
 	auto DirectoryNames = UFileUtils::FindDirectories(GetPath(),true);
 	for (auto Directory : DirectoryNames)
 	{
@@ -49,7 +50,10 @@ bool FFolder::InitializeDirectories()
 		{
 			continue;
 		}
+		if( MaxFolders < 0)
+			break;
 		GetDirectories().Push(SubFolder.Name);
+		MaxFolders--;
 	}
 	bIsDirectoriesInitialized = true;
 	return bIsDirectoriesInitialized;
@@ -57,12 +61,16 @@ bool FFolder::InitializeDirectories()
 
 bool FFolder::InitializeFiles()
 {
+	int MaxFiles = 20;
 	auto FileNames = UFileUtils::FindFiles(GetPath(),false);
 	for (auto FileName : FileNames)
 	{
 		FFile File = FFile();
 		File.Init(FileName,this->Path);
 		Files.Push(File);
+		if( MaxFiles < 0)
+			break;
+		MaxFiles--;
 	}
 	bIsFilesInitialized = true;
 	return bIsFilesInitialized;

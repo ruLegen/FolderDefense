@@ -3,17 +3,21 @@
 
 #include "UI/FDMatchGameHUD.h"
 
+#include "FDGameInstance.h"
 #include "Blueprint/UserWidget.h"
+#include "GameModes/FDMatchGameMode.h"
+#include "Kismet/GameplayStatics.h"
+#include "PlayerStates/FDMatchPlayerState.h"
 #include "UI/Widgets/FDMatchGameOverWidget.h"
 
 void AFDMatchGameHUD::BeginPlay()
 {
 	Super::BeginPlay();
-	auto GameOverWidget = CreateWidget<UFDMatchGameOverWidget>(GetWorld(), GameOverWidgetClass);
+	GameOverWidget = CreateWidget<UFDMatchGameOverWidget>(GetWorld(), GameOverWidgetClass);
 	if (GameOverWidget)
 	{
-		GameOverWidget->RestartButton->SetVisibility(GetWorld()->GetAuthGameMode() ? ESlateVisibility::Visible : ESlateVisibility::Hidden);		// if we are server; May be problem on listen server
-		//GameOverWidget->RestartButton->OnClicked.AddDynamic(this, &AFDMatchGameHUD::OnRestartMatchClicked);
+		//GameOverWidget->ExitButton->SetVisibility(GetWorld()->GetAuthGameMode() ? ESlateVisibility::Visible : ESlateVisibility::Hidden);		// if we are server; May be problem on listen server
+		GameOverWidget->ExitButton->OnClicked.AddDynamic(this, &AFDMatchGameHUD::OnExitButtonPressed);
 	}
 	
 	HUDWidgetMap.Add(EHUDState::GAMEOVER, GameOverWidget);
@@ -21,8 +25,13 @@ void AFDMatchGameHUD::BeginPlay()
 	SetState(EHUDState::NONE);
 }
 
-void AFDMatchGameHUD::UpdatePlayerInfo()
+
+void AFDMatchGameHUD::UpdatePlayerMatchResult(bool bIsDefeat)
 {
+	if(!bIsDefeat && GameOverWidget)
+		GameOverWidget->SetText("You WIN");
+	if(bIsDefeat && GameOverWidget)
+		GameOverWidget->SetText("You LOOOOOOSE");
 }
 
 void AFDMatchGameHUD::SetState(EHUDState State)
@@ -34,7 +43,7 @@ void AFDMatchGameHUD::SetState(EHUDState State)
 		HideAll();
 		break;
 	case EHUDState::GAMEOVER:
-		UpdatePlayerInfo();
+		//UpdatePlayerMatchResult();
 	default:
 		SetStateVisibility(State);
 		break;
@@ -80,14 +89,17 @@ void AFDMatchGameHUD::SetStateVisibility(EHUDState State)
 	}
 }
 
-void AFDMatchGameHUD::OnMainMenuClicked()
+void AFDMatchGameHUD::OnExitButtonPressed()
 {
+	auto GameMode = GetWorld()->GetAuthGameMode<AFDMatchGameMode>();
+	if (GameMode)
+	{
+		GameMode->FinishGame();
+	}else
+	{
+		auto world = GetWorld();
+		if(!world) return;
+		UGameplayStatics::OpenLevel(world,FName(UFDGameInstance::MainMenuLevel));
+	}
 }
 
-void AFDMatchGameHUD::OnBackClicked()
-{
-}
-
-void AFDMatchGameHUD::OnRestartMatchClicked()
-{
-}

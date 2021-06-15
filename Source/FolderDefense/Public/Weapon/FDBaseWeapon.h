@@ -75,12 +75,15 @@ public:
 	FWeaponUIData WeaponUIData;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "FX")
-	UNiagaraSystem *MuzzleFX;
+	UParticleSystem *MuzzleFX;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "FX")
+	UParticleSystem *HitFX;
+	
 	FTimerHandle FireTimerHandle;
 	FName MuzzleSocketName = "MuzzleSocket";
 	
-	UNiagaraComponent* SpawnMuzzleFX();
+	UParticleSystemComponent* SpawnMuzzleFX();
 	private:
 	UPROPERTY(EditAnyWhere, Replicated, Category = "Ammunition")
 	FAmmoData CurrentAmmoData;

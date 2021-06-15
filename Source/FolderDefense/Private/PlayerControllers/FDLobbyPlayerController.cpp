@@ -24,3 +24,9 @@ void AFDLobbyPlayerController::PreClientTravel(const FString& PendingURL, ETrave
 	}
 	Super::PreClientTravel(PendingURL, TravelType, bIsSeamlessTravel);
 }
+
+void AFDLobbyPlayerController::Disconnect_Implementation()
+{
+	if(!HasAuthority())
+		GEngine->HandleDisconnect(GetWorld(), GetWorld()->GetNetDriver());
+}

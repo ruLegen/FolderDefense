@@ -35,6 +35,8 @@ public:
 	void Disconnect();
 	UFUNCTION(Server,Reliable)
 	void SendFolderToServer(const FString& JSONFolder);
+	UFUNCTION(Client,Reliable)
+	void UpdateMatchState(bool bIsDefeat);
 
 
 private:
