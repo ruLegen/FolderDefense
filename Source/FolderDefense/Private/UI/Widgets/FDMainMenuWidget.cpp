@@ -27,7 +27,12 @@ void UFDMainMenuWidget::NativeOnInitialized()
 	if (RefreshButton) {
 		RefreshButton->OnClicked.AddDynamic(this, &UFDMainMenuWidget::OnRefreshClicked);
 	}
-
+	if (DisclaimerButton) {
+		DisclaimerButton->OnClicked.AddDynamic(this, &UFDMainMenuWidget::OnDisclaimerClicked);
+	}
+	if (DisclaimerToMainMenuButton) {
+		DisclaimerToMainMenuButton->OnClicked.AddDynamic(this, &UFDMainMenuWidget::OnBackToMenu);
+	}
 	auto GameInstace = GetGameInstance<UFDGameInstance>();
 	if (GameInstace)
 	{
@@ -60,6 +65,11 @@ void UFDMainMenuWidget::OnRefreshClicked()
 	if (!GameInstace) return;
 
 	GameInstace->RequestSearchSession();
+}
+
+void UFDMainMenuWidget::OnDisclaimerClicked()
+{
+	LayoutSwitcher->SetActiveWidgetIndex(2);
 }
 
 

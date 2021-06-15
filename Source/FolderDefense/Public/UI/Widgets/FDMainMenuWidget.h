@@ -36,6 +36,13 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	UButton* RefreshButton;
+
+
+	UPROPERTY(meta = (BindWidget))
+	UButton* DisclaimerButton;
+	
+	UPROPERTY(meta = (BindWidget))
+	UButton* DisclaimerToMainMenuButton;
 	
 	UPROPERTY(meta = (BindWidget))
 	UWidgetSwitcher* LayoutSwitcher;
@@ -62,6 +69,9 @@ private:
 
 	UFUNCTION()
 	void OnRefreshClicked();
+
+	UFUNCTION()
+	void OnDisclaimerClicked();
 
 	void OnServerClicked(int32 Id);
 	void OnRefreshed(TArray<FOnlineSessionSearchResult>& Servers);
