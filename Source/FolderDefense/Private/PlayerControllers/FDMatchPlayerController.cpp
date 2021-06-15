@@ -71,7 +71,7 @@ void AFDMatchPlayerController::OnGameOver()
 
 AFDMatchPlayerController::AFDMatchPlayerController()
 {
-	bReplicates = true;
+ 	bReplicates = true;
 }
 
 void AFDMatchPlayerController::SetupInputComponent()

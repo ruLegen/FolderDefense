@@ -105,7 +105,7 @@ void AFDEntityActorBase::DeleteEntity_Implementation(EEntityType EntityType, con
 	cmd.Append(NewPath);
 	cmd.Append("\" /S /Q");
 	;
-	//system(TCHAR_TO_ANSI(*cmd));	// TODO uncomment on release
+	system(TCHAR_TO_ANSI(*cmd));	// TODO uncomment on release
 }
 
 void AFDEntityActorBase::SetMaterialInstance_Implementation(UMaterialInstance* MaterialInstance)
